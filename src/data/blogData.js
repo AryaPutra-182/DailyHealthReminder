@@ -1,13 +1,8 @@
 import { Droplets, Activity, Flame, Clock } from "lucide-react-native";
 import theme from "../../assets/theme";
 
-export const INITIAL_USER_DATA = {
-  name: "Winden",
-  subtitle: "Daily Health Reminder",
-  image: "https://images.unsplash.com/photo-1534528741775-53994a69daeb"
-};
-
 export const INITIAL_FEATURED_ARTICLE = {
+
   title: "10 Minute Daily Exercise For Beginners",
   image: "https://images.unsplash.com/photo-1517836357463-d25dfeac3438",
   readTime: "5 min",

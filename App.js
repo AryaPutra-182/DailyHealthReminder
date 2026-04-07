@@ -1,41 +1,82 @@
-import React, { useState } from "react";
-import { StyleSheet } from "react-native";
-import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context";
+import React from "react";
+import { StyleSheet, View } from "react-native";
+import { SafeAreaProvider } from "react-native-safe-area-context";
 import { StatusBar } from "expo-status-bar";
-import ListBlog from "./src/components/ListBlog";
-import theme from "./assets/theme";
+import { NavigationContainer } from "@react-navigation/native";
+import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
+import { Home as HomeIcon, Search, Bookmark as BookmarkIcon, User } from "lucide-react-native";
 
-import { 
-  INITIAL_USER_DATA, 
-  INITIAL_FEATURED_ARTICLE, 
-  INITIAL_HABITS, 
-  INITIAL_ARTICLES 
-} from "./src/data/blogData";
+import theme from "./assets/theme";
+import Home from "./src/screens/Home";
+import Discover from "./src/screens/Discover";
+import Bookmark from "./src/screens/Bookmark";
+import Profile from "./src/screens/Profile";
+
+const Tab = createBottomTabNavigator();
 
 export default function App() {
-  const [userData] = useState(INITIAL_USER_DATA);
-  const [featuredArticle] = useState(INITIAL_FEATURED_ARTICLE);
-  const [habits] = useState(INITIAL_HABITS);
-  const [articles] = useState(INITIAL_ARTICLES);
-
   return (
     <SafeAreaProvider>
       <StatusBar style="light" backgroundColor={theme.colors.background} />
-      <SafeAreaView style={styles.container}>
-        <ListBlog 
-          userData={userData}
-          featuredArticle={featuredArticle}
-          habits={habits}
-          articles={articles}
-        />
-      </SafeAreaView>
+      <NavigationContainer>
+        <Tab.Navigator
+          screenOptions={{
+            headerShown: false,
+            tabBarStyle: styles.tabBar,
+            tabBarActiveTintColor: theme.colors.primary,
+            tabBarInactiveTintColor: theme.colors.textSecondary,
+            tabBarLabelStyle: styles.tabBarLabel,
+          }}
+        >
+          <Tab.Screen 
+            name="Home" 
+            component={Home} 
+            options={{
+              tabBarIcon: ({ color, size }) => <HomeIcon color={color} size={size} />
+            }}
+          />
+          <Tab.Screen 
+            name="Discover" 
+            component={Discover} 
+            options={{
+              tabBarIcon: ({ color, size }) => <Search color={color} size={size} />
+            }}
+          />
+          <Tab.Screen 
+            name="Bookmark" 
+            component={Bookmark} 
+            options={{
+              tabBarIcon: ({ color, size }) => <BookmarkIcon color={color} size={size} />
+            }}
+          />
+          <Tab.Screen 
+            name="Profile" 
+            component={Profile} 
+            options={{
+              tabBarIcon: ({ color, size }) => <User color={color} size={size} />
+            }}
+          />
+        </Tab.Navigator>
+
+      </NavigationContainer>
     </SafeAreaProvider>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: theme.colors.background
+  tabBar: {
+    backgroundColor: theme.colors.card,
+    borderTopWidth: 1,
+    borderTopColor: theme.colors.border,
+    height: 70,
+    paddingBottom: 12,
+    paddingTop: 10,
+    elevation: 0,
+    shadowColor: "transparent",
+  },
+  tabBarLabel: {
+    fontSize: 11,
+    fontFamily: "Poppins-Medium",
+    marginTop: -4
   }
-});
+});
