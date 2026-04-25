@@ -3,15 +3,18 @@ import { View, Text, StyleSheet, ScrollView, Image } from "react-native";
 import { Bookmark as BookmarkIcon } from "lucide-react-native";
 import theme from "../../assets/theme";
 
+// Screen Bookmark: Menyimpan daftar artikel yang telah ditandai oleh pengguna
 export default function Bookmark() {
   return (
     <View style={styles.container}>
+      {/* Bagian Header: Judul dan deskripsi halaman bookmark */}
       <View style={styles.header}>
         <Text style={styles.title}>Bookmarks</Text>
         <Text style={styles.subtitle}>Saved articles for later</Text>
       </View>
 
       <ScrollView contentContainerStyle={styles.content}>
+        {/* Tampilan Empty State: Ditampilkan saat belum ada artikel yang disimpan */}
         <View style={styles.emptyContainer}>
           <BookmarkIcon color={theme.colors.border} size={64} style={styles.icon} />
           <Text style={styles.emptyTitle}>No Bookmarks Yet</Text>

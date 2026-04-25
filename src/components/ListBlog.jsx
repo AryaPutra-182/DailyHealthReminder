@@ -1,5 +1,6 @@
 import React from "react";
 import { ScrollView, View, StyleSheet } from "react-native";
+import { useNavigation } from "@react-navigation/native";
 import theme from "../../assets/theme";
 import Header from "./Header";
 import SectionHeader from "./SectionHeader";
@@ -7,7 +8,23 @@ import HabitCard from "./HabitCard";
 import FeaturedCard from "./FeaturedCard";
 import ArticleCard from "./ArticleCard";
 
+// Komponen ListBlog: Menampilkan daftar artikel dan habit di halaman Home
 export default function ListBlog({ userData, featuredArticle, habits, articles }) {
+  // Hook untuk mengakses fungsi navigasi
+  const navigation = useNavigation();
+
+  /**
+   * Fungsi untuk menangani klik pada artikel
+   * Berfungsi untuk berpindah ke layar BlogDetail dengan membawa data artikel
+   */
+  const handleArticlePress = (article) => {
+    navigation.navigate("BlogDetail", {
+      title: article.title,
+      image: article.image,
+      category: article.category,
+      readTime: article.readTime,
+    });
+  };
 
   return (
     <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
@@ -25,7 +42,7 @@ export default function ListBlog({ userData, featuredArticle, habits, articles }
         image={featuredArticle.image}
         readTime={featuredArticle.readTime}
         badgeText={featuredArticle.badgeText}
-        onPress={() => console.log("Featured article pressed")}
+        onPress={() => handleArticlePress(featuredArticle)}
       />
 
       {/* Quick Habits Section */}
@@ -66,7 +83,7 @@ export default function ListBlog({ userData, featuredArticle, habits, articles }
               image={article.image}
               category={article.category}
               readTime={article.readTime}
-              onPress={() => console.log(`${article.title} pressed`)}
+              onPress={() => handleArticlePress(article)}
             />
           ))}
         </View>

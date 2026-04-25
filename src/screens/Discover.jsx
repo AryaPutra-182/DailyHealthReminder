@@ -3,14 +3,17 @@ import { View, Text, StyleSheet, TextInput, ScrollView } from "react-native";
 import { Search } from "lucide-react-native";
 import theme from "../../assets/theme";
 
+// Screen Discover: Memungkinkan pengguna mencari artikel atau konten kesehatan
 export default function Discover() {
   return (
     <View style={styles.container}>
+      {/* Bagian Header: Judul halaman dan deskripsi singkat */}
       <View style={styles.header}>
         <Text style={styles.title}>Discover</Text>
         <Text style={styles.subtitle}>Find your health assistant content</Text>
       </View>
 
+      {/* Bar Pencarian: Input untuk mencari artikel atau kebiasaan */}
       <View style={styles.searchBar}>
         <Search color={theme.colors.textSecondary} size={20} />
         <TextInput 
@@ -20,10 +23,11 @@ export default function Discover() {
         />
       </View>
 
+      {/* Area Konten: Menggunakan ScrollView untuk menampilkan kategori atau hasil pencarian */}
       <ScrollView contentContainerStyle={styles.content}>
-        {/* Placeholder for categories */}
+        {/* Placeholder untuk fitur kategori yang akan segera hadir */}
         <View style={styles.placeholderCard}>
-          <Text style={styles.placeholderText}>Exploration coming soon!</Text>
+          <Text style={styles.placeholderText}>Coming soon</Text>
         </View>
       </ScrollView>
     </View>

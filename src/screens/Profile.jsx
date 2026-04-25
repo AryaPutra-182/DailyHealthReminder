@@ -1,14 +1,20 @@
 import React from "react";
 import { View, Text, StyleSheet, Image, ScrollView, TouchableOpacity } from "react-native";
+import { useNavigation } from "@react-navigation/native";
 import { User, Settings, Bell, Shield, Info, LogOut, ChevronRight, Activity, Droplets, Clock } from "lucide-react-native";
 import theme from "../../assets/theme";
 import { PROFILE_DATA } from "../data/profile";
 
 export default function Profile() {
   const user = PROFILE_DATA;
+  const navigation = useNavigation();
 
+  // Komponen pembantu untuk merender opsi menu pada halaman profil
   const MenuOption = ({ Icon, title, subtitle }) => (
-    <TouchableOpacity style={styles.menuItem}>
+    <TouchableOpacity 
+      style={styles.menuItem} 
+      onPress={() => navigation.navigate("SettingsDetail", { title })}
+    >
       <View style={[styles.iconContainer, { backgroundColor: theme.colors.card }]}>
         <Icon color={theme.colors.primary} size={22} />
       </View>
@@ -26,7 +32,7 @@ export default function Profile() {
         <Text style={styles.headerTitle}>Profile</Text>
       </View>
 
-      {/* User Info Card */}
+      {/* Card Info Pengguna: Menampilkan foto, nama, dan email */}
       <View style={styles.profileCard}>
         <Image source={{ uri: user.image }} style={styles.avatar} />
         <View style={styles.profileInfo}>
@@ -38,7 +44,7 @@ export default function Profile() {
         </TouchableOpacity>
       </View>
 
-      {/* Stats Row */}
+      {/* Baris Statistik: Menampilkan data langkah kaki, air minum, dan waktu tidur */}
       <View style={styles.statsRow}>
         <View style={styles.statBox}>
           <Text style={styles.statValue}>{user.stats.steps}</Text>
@@ -54,7 +60,7 @@ export default function Profile() {
         </View>
       </View>
 
-      {/* Settings Section */}
+      {/* Bagian Pengaturan: Navigasi untuk notifikasi, keamanan, dan pengaturan umum */}
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>Preferences</Text>
         <MenuOption Icon={Bell} title="Notifications" subtitle="Reminders, health tips" />
@@ -62,7 +68,7 @@ export default function Profile() {
         <MenuOption Icon={Settings} title="General Settings" />
       </View>
 
-      {/* Support Section */}
+      {/* Bagian Dukungan & Keluar: Tombol bantuan dan logout aplikasi */}
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>Support</Text>
         <MenuOption Icon={Info} title="Help Center" />
@@ -76,7 +82,6 @@ export default function Profile() {
     </ScrollView>
   );
 }
-
 
 const styles = StyleSheet.create({
   container: {
