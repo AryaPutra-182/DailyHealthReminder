@@ -1,10 +1,41 @@
-import React from "react";
-import { View, Text, StyleSheet, ScrollView, Image } from "react-native";
+import React, { useEffect, useRef } from "react";
+import { View, Text, StyleSheet, ScrollView, Animated } from "react-native";
 import { Bookmark as BookmarkIcon } from "lucide-react-native";
 import theme from "../../assets/theme";
 
 // Screen Bookmark: Menyimpan daftar artikel yang telah ditandai oleh pengguna
 export default function Bookmark() {
+  // Animated values untuk efek bounce pada ikon dan fade-in judul
+  const bounceAnim = useRef(new Animated.Value(-40)).current;
+  const fadeAnim = useRef(new Animated.Value(0)).current;
+  const textFade = useRef(new Animated.Value(0)).current;
+
+  // Menjalankan animasi masuk saat screen pertama kali di-render
+  useEffect(() => {
+    Animated.sequence([
+      // Ikon turun dari atas dengan efek spring
+      Animated.spring(bounceAnim, {
+        toValue: 0,
+        useNativeDriver: true,
+        speed: 5,
+        bounciness: 14,
+      }),
+      // Judul dan subtitle fade-in setelah ikon selesai
+      Animated.parallel([
+        Animated.timing(fadeAnim, {
+          toValue: 1,
+          duration: 300,
+          useNativeDriver: true,
+        }),
+        Animated.timing(textFade, {
+          toValue: 1,
+          duration: 300,
+          useNativeDriver: true,
+        }),
+      ]),
+    ]).start();
+  }, []);
+
   return (
     <View style={styles.container}>
       {/* Bagian Header: Judul dan deskripsi halaman bookmark */}
@@ -16,9 +47,15 @@ export default function Bookmark() {
       <ScrollView contentContainerStyle={styles.content}>
         {/* Tampilan Empty State: Ditampilkan saat belum ada artikel yang disimpan */}
         <View style={styles.emptyContainer}>
-          <BookmarkIcon color={theme.colors.border} size={64} style={styles.icon} />
-          <Text style={styles.emptyTitle}>No Bookmarks Yet</Text>
-          <Text style={styles.emptySubtitle}>Start saving your favorite articles to read them later!</Text>
+          {/* Ikon bounce dari atas */}
+          <Animated.View style={[styles.icon, { transform: [{ translateY: bounceAnim }] }]}>
+            <BookmarkIcon color={theme.colors.border} size={64} />
+          </Animated.View>
+          {/* Teks muncul setelah ikon selesai */}
+          <Animated.View style={{ opacity: fadeAnim }}>
+            <Text style={styles.emptyTitle}>No Bookmarks Yet</Text>
+            <Text style={styles.emptySubtitle}>Start saving your favorite articles to read them later!</Text>
+          </Animated.View>
         </View>
       </ScrollView>
     </View>

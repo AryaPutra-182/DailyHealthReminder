@@ -1,95 +1,130 @@
-import React from "react";
-import { View, Text, StyleSheet, TextInput, ScrollView } from "react-native";
-import { Search } from "lucide-react-native";
-import theme from "../../assets/theme";
+  import React, { useEffect, useRef } from "react";
+  import { View, Text, StyleSheet, TextInput, ScrollView, Animated } from "react-native";
+  import { Search } from "lucide-react-native";
+  import theme from "../../assets/theme";
 
-// Screen Discover: Memungkinkan pengguna mencari artikel atau konten kesehatan
-export default function Discover() {
-  return (
-    <View style={styles.container}>
-      {/* Bagian Header: Judul halaman dan deskripsi singkat */}
-      <View style={styles.header}>
-        <Text style={styles.title}>Discover</Text>
-        <Text style={styles.subtitle}>Find your health assistant content</Text>
+  // Screen Discover: Memungkinkan pengguna mencari artikel atau konten kesehatan
+  export default function Discover() {
+    // Animated values untuk efek slide-in header dan fade-in konten
+    const headerSlide = useRef(new Animated.Value(-30)).current;
+    const headerFade = useRef(new Animated.Value(0)).current;
+    const contentFade = useRef(new Animated.Value(0)).current;
+
+    // Menjalankan animasi masuk saat screen pertama kali di-render
+    useEffect(() => {
+      Animated.sequence([
+        // Header dan search bar slide dari atas bersamaan
+        Animated.parallel([
+          Animated.timing(headerSlide, {
+            toValue: 0,
+            duration: 400,
+            useNativeDriver: true,
+          }),
+          Animated.timing(headerFade, {
+            toValue: 1,
+            duration: 400,
+            useNativeDriver: true,
+          }),
+        ]),
+        // Konten muncul setelah header selesai
+        Animated.timing(contentFade, {
+          toValue: 1,
+          duration: 350,
+          useNativeDriver: true,
+        }),
+      ]).start();
+    }, []);
+
+    return (
+      <View style={styles.container}>
+        {/* Bagian Header & Search: animasi slide-in dari atas */}
+        <Animated.View style={{ opacity: headerFade, transform: [{ translateY: headerSlide }] }}>
+          {/* Bagian Header: Judul halaman dan deskripsi singkat */}
+          <View style={styles.header}>
+            <Text style={styles.title}>Discover</Text>
+            <Text style={styles.subtitle}>Find your health assistant content</Text>
+          </View>
+
+          {/* Bar Pencarian: Input untuk mencari artikel atau kebiasaan */}
+          <View style={styles.searchBar}>
+            <Search color={theme.colors.textSecondary} size={20} />
+            <TextInput 
+              placeholder="Search for articles, habits..." 
+              placeholderTextColor={theme.colors.textSecondary}
+              style={styles.searchInput}
+            />
+          </View>
+        </Animated.View>
+
+        {/* Area Konten: fade-in setelah header selesai animasi */}
+        <Animated.View style={{ flex: 1, opacity: contentFade }}>
+          <ScrollView contentContainerStyle={styles.content}>
+            {/* Placeholder untuk fitur kategori yang akan segera hadir */}
+            <View style={styles.placeholderCard}>
+              <Text style={styles.placeholderText}>Coming soon</Text>
+            </View>
+          </ScrollView>
+        </Animated.View>
       </View>
-
-      {/* Bar Pencarian: Input untuk mencari artikel atau kebiasaan */}
-      <View style={styles.searchBar}>
-        <Search color={theme.colors.textSecondary} size={20} />
-        <TextInput 
-          placeholder="Search for articles, habits..." 
-          placeholderTextColor={theme.colors.textSecondary}
-          style={styles.searchInput}
-        />
-      </View>
-
-      {/* Area Konten: Menggunakan ScrollView untuk menampilkan kategori atau hasil pencarian */}
-      <ScrollView contentContainerStyle={styles.content}>
-        {/* Placeholder untuk fitur kategori yang akan segera hadir */}
-        <View style={styles.placeholderCard}>
-          <Text style={styles.placeholderText}>Coming soon</Text>
-        </View>
-      </ScrollView>
-    </View>
-  );
-}
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: theme.colors.background,
-    paddingHorizontal: 24,
-    paddingTop: 20
-  },
-  header: {
-    marginBottom: 20,
-  },
-  title: {
-    fontSize: 28,
-    fontWeight: "bold",
-    color: theme.colors.text,
-    fontFamily: "Poppins-Bold"
-  },
-  subtitle: {
-    fontSize: 16,
-    color: theme.colors.textSecondary,
-    marginTop: 4,
-    fontFamily: "Poppins-Regular"
-  },
-  searchBar: {
-    flexDirection: "row",
-    alignItems: "center",
-    backgroundColor: theme.colors.card,
-    borderRadius: 12,
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    marginBottom: 24,
-    borderWidth: 1,
-    borderColor: theme.colors.border
-  },
-  searchInput: {
-    flex: 1,
-    marginLeft: 12,
-    color: theme.colors.text,
-    fontSize: 16,
-    fontFamily: "Poppins-Regular"
-  },
-  content: {
-    flexGrow: 1,
-  },
-  placeholderCard: {
-    height: 200,
-    backgroundColor: theme.colors.card,
-    borderRadius: 16,
-    justifyContent: "center",
-    alignItems: "center",
-    borderStyle: "dashed",
-    borderWidth: 1,
-    borderColor: theme.colors.border
-  },
-  placeholderText: {
-    color: theme.colors.textSecondary,
-    fontSize: 14,
-    fontFamily: "Poppins-Medium"
+    );
   }
-});
+
+  const styles = StyleSheet.create({
+    container: {
+      flex: 1,
+      backgroundColor: theme.colors.background,
+      paddingHorizontal: 24,
+      paddingTop: 20
+    },
+    header: {
+      marginBottom: 20,
+    },
+    title: {
+      fontSize: 28,
+      fontWeight: "bold",
+      color: theme.colors.text,
+      fontFamily: "Poppins-Bold"
+    },
+    subtitle: {
+      fontSize: 16,
+      color: theme.colors.textSecondary,
+      marginTop: 4,
+      fontFamily: "Poppins-Regular"
+    },
+    searchBar: {
+      flexDirection: "row",
+      alignItems: "center",
+      backgroundColor: theme.colors.card,
+      borderRadius: 12,
+      paddingHorizontal: 16,
+      paddingVertical: 12,
+      marginBottom: 24,
+      borderWidth: 1,
+      borderColor: theme.colors.border
+    },
+    searchInput: {
+      flex: 1,
+      marginLeft: 12,
+      color: theme.colors.text,
+      fontSize: 16,
+      fontFamily: "Poppins-Regular"
+    },
+    content: {
+      flexGrow: 1,
+    },
+    placeholderCard: {
+      height: 200,
+      backgroundColor: theme.colors.card,
+      borderRadius: 16,
+      justifyContent: "center",
+      alignItems: "center",
+      borderStyle: "dashed",
+      borderWidth: 1,
+      borderColor: theme.colors.border
+    },
+    placeholderText: {
+      color: theme.colors.textSecondary,
+      fontSize: 14,
+      fontFamily: "Poppins-Medium"
+    }
+  });

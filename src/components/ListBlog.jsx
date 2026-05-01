@@ -1,5 +1,5 @@
-import React from "react";
-import { ScrollView, View, StyleSheet } from "react-native";
+import React, { useEffect, useRef } from "react";
+import { ScrollView, View, StyleSheet, Animated } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import theme from "../../assets/theme";
 import Header from "./Header";
@@ -12,6 +12,26 @@ import ArticleCard from "./ArticleCard";
 export default function ListBlog({ userData, featuredArticle, habits, articles }) {
   // Hook untuk mengakses fungsi navigasi
   const navigation = useNavigation();
+
+  // Animated values untuk efek fade-in dan slide-up saat mount
+  const fadeAnim = useRef(new Animated.Value(0)).current;
+  const slideAnim = useRef(new Animated.Value(30)).current;
+
+  // Menjalankan animasi masuk saat komponen pertama kali di-render
+  useEffect(() => {
+    Animated.parallel([
+      Animated.timing(fadeAnim, {
+        toValue: 1,
+        duration: 500,
+        useNativeDriver: true,
+      }),
+      Animated.timing(slideAnim, {
+        toValue: 0,
+        duration: 500,
+        useNativeDriver: true,
+      }),
+    ]).start();
+  }, []);
 
   /**
    * Fungsi untuk menangani klik pada artikel
@@ -27,6 +47,8 @@ export default function ListBlog({ userData, featuredArticle, habits, articles }
   };
 
   return (
+    // Animated.View membungkus seluruh konten untuk efek fade-in + slide-up saat mount
+    <Animated.View style={{ flex: 1, opacity: fadeAnim, transform: [{ translateY: slideAnim }] }}>
     <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
       
       {/* Header */}
@@ -92,6 +114,7 @@ export default function ListBlog({ userData, featuredArticle, habits, articles }
       </View>
 
     </ScrollView>
+    </Animated.View>
   );
 }
 

@@ -1,5 +1,5 @@
-import React from "react";
-import { View, Text, StyleSheet, Image, ScrollView, TouchableOpacity } from "react-native";
+import React, { useEffect, useRef } from "react";
+import { View, Text, StyleSheet, Image, ScrollView, TouchableOpacity, Animated } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import { User, Settings, Bell, Shield, Info, LogOut, ChevronRight, Activity, Droplets, Clock } from "lucide-react-native";
 import theme from "../../assets/theme";
@@ -8,6 +8,35 @@ import { PROFILE_DATA } from "../data/profile";
 export default function Profile() {
   const user = PROFILE_DATA;
   const navigation = useNavigation();
+
+  // Animated values untuk staggered fade-in: header, profileCard, statsRow, section1, section2
+  const animValues = useRef([
+    new Animated.Value(0), // headerTitle
+    new Animated.Value(0), // profileCard
+    new Animated.Value(0), // statsRow
+    new Animated.Value(0), // section Preferences
+    new Animated.Value(0), // section Support
+  ]).current;
+
+  // Jalankan staggered animation saat screen mount
+  useEffect(() => {
+    Animated.stagger(
+      120, // delay 120ms antar setiap elemen
+      animValues.map((anim) =>
+        Animated.timing(anim, {
+          toValue: 1,
+          duration: 400,
+          useNativeDriver: true,
+        })
+      )
+    ).start();
+  }, []);
+
+  // Helper: mengkonversi animated value ke style translateY + opacity
+  const getAnimStyle = (anim) => ({
+    opacity: anim,
+    transform: [{ translateY: anim.interpolate({ inputRange: [0, 1], outputRange: [20, 0] }) }],
+  });
 
   // Komponen pembantu untuk merender opsi menu pada halaman profil
   const MenuOption = ({ Icon, title, subtitle }) => (
@@ -28,12 +57,13 @@ export default function Profile() {
 
   return (
     <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
-      <View style={styles.header}>
+      {/* Header Title – animasi pertama */}
+      <Animated.View style={[styles.header, getAnimStyle(animValues[0])]}>
         <Text style={styles.headerTitle}>Profile</Text>
-      </View>
+      </Animated.View>
 
-      {/* Card Info Pengguna: Menampilkan foto, nama, dan email */}
-      <View style={styles.profileCard}>
+      {/* Card Info Pengguna – animasi kedua */}
+      <Animated.View style={[styles.profileCard, getAnimStyle(animValues[1])]}>
         <Image source={{ uri: user.image }} style={styles.avatar} />
         <View style={styles.profileInfo}>
           <Text style={styles.userName}>{user.name}</Text>
@@ -42,10 +72,10 @@ export default function Profile() {
         <TouchableOpacity style={styles.editButton}>
           <Settings color={theme.colors.text} size={20} />
         </TouchableOpacity>
-      </View>
+      </Animated.View>
 
-      {/* Baris Statistik: Menampilkan data langkah kaki, air minum, dan waktu tidur */}
-      <View style={styles.statsRow}>
+      {/* Baris Statistik – animasi ketiga */}
+      <Animated.View style={[styles.statsRow, getAnimStyle(animValues[2])]}>
         <View style={styles.statBox}>
           <Text style={styles.statValue}>{user.stats.steps}</Text>
           <Text style={styles.statLabel}>Steps</Text>
@@ -58,25 +88,25 @@ export default function Profile() {
           <Text style={styles.statValue}>{user.stats.sleep}</Text>
           <Text style={styles.statLabel}>Sleep</Text>
         </View>
-      </View>
+      </Animated.View>
 
-      {/* Bagian Pengaturan: Navigasi untuk notifikasi, keamanan, dan pengaturan umum */}
-      <View style={styles.section}>
+      {/* Section Preferences – animasi keempat */}
+      <Animated.View style={[styles.section, getAnimStyle(animValues[3])]}>
         <Text style={styles.sectionTitle}>Preferences</Text>
         <MenuOption Icon={Bell} title="Notifications" subtitle="Reminders, health tips" />
         <MenuOption Icon={Shield} title="Privacy & Security" subtitle="Personal info management" />
         <MenuOption Icon={Settings} title="General Settings" />
-      </View>
+      </Animated.View>
 
-      {/* Bagian Dukungan & Keluar: Tombol bantuan dan logout aplikasi */}
-      <View style={styles.section}>
+      {/* Section Support – animasi kelima */}
+      <Animated.View style={[styles.section, getAnimStyle(animValues[4])]}>
         <Text style={styles.sectionTitle}>Support</Text>
         <MenuOption Icon={Info} title="Help Center" />
         <TouchableOpacity style={styles.logoutButton}>
           <LogOut color={theme.colors.danger} size={20} />
           <Text style={styles.logoutText}>Log Out</Text>
         </TouchableOpacity>
-      </View>
+      </Animated.View>
 
       <View style={{ height: 40 }} />
     </ScrollView>

@@ -1,5 +1,5 @@
-import React from "react";
-import { View, Text, Image, StyleSheet, ScrollView, TouchableOpacity, StatusBar } from "react-native";
+import React, { useRef } from "react";
+import { View, Text, Image, StyleSheet, ScrollView, TouchableOpacity, StatusBar, Animated } from "react-native";
 import { ChevronLeft, Clock, Share2, Bookmark, User } from "lucide-react-native";
 import { useNavigation } from "@react-navigation/native";
 import theme from "../../assets/theme";
@@ -13,11 +13,66 @@ export default function BlogDetail({ route }) {
   // Konten cadangan jika data konten tidak tersedia
   const articleContent = content || "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.\n\nDuis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.";
 
+  // --- Animasi Hide-on-Scroll untuk topNav ---
+  // Animated values untuk mengontrol posisi (translateY) dan transparansi (opacity) topNav
+  const navTranslateY = useRef(new Animated.Value(0)).current;
+  const navOpacity = useRef(new Animated.Value(1)).current;
+
+  // Menyimpan posisi scroll terakhir untuk menentukan arah scroll
+  const lastScrollY = useRef(0);
+  // Flag untuk mencegah animasi duplikat saat sudah dalam kondisi yang sama
+  const isNavVisible = useRef(true);
+
+  /**
+   * Handler untuk event onScroll di ScrollView.
+   * Membandingkan posisi scroll saat ini dengan sebelumnya:
+   * - Scroll ke bawah (y naik) → sembunyikan topNav
+   * - Scroll ke atas (y turun) → tampilkan topNav
+   */
+  const handleScroll = (event) => {
+    const currentY = event.nativeEvent.contentOffset.y;
+    const scrollingDown = currentY > lastScrollY.current && currentY > 40;
+
+    if (scrollingDown && isNavVisible.current) {
+      // Sembunyikan topNav: slide ke atas dan fade out
+      isNavVisible.current = false;
+      Animated.parallel([
+        Animated.timing(navTranslateY, {
+          toValue: -100,
+          duration: 250,
+          useNativeDriver: true,
+        }),
+        Animated.timing(navOpacity, {
+          toValue: 0,
+          duration: 200,
+          useNativeDriver: true,
+        }),
+      ]).start();
+    } else if (!scrollingDown && !isNavVisible.current) {
+      // Tampilkan topNav: slide turun kembali dan fade in
+      isNavVisible.current = true;
+      Animated.parallel([
+        Animated.timing(navTranslateY, {
+          toValue: 0,
+          duration: 250,
+          useNativeDriver: true,
+        }),
+        Animated.timing(navOpacity, {
+          toValue: 1,
+          duration: 250,
+          useNativeDriver: true,
+        }),
+      ]).start();
+    }
+
+    lastScrollY.current = currentY;
+  };
+
   return (
     <View style={styles.container}>
       <StatusBar barStyle="light-content" />
       
-      {/* Gambar Header & Tombol Kembali */}
+      {/* Gambar Header */}
       <View style={styles.headerImageContainer}>
         <Image
           source={{ uri: image || "https://images.unsplash.com/photo-1546069901-ba9599a7e63c" }}
@@ -25,8 +80,16 @@ export default function BlogDetail({ route }) {
         />
         <View style={styles.overlay} />
         
-        {/* Bar Navigasi Atas yang Melayang di atas gambar */}
-        <View style={styles.topNav}>
+        {/* Bar Navigasi Atas: Dibungkus Animated.View untuk hide-on-scroll */}
+        <Animated.View
+          style={[
+            styles.topNav,
+            {
+              transform: [{ translateY: navTranslateY }],
+              opacity: navOpacity,
+            },
+          ]}
+        >
           <TouchableOpacity 
             style={styles.backButton} 
             onPress={() => navigation.goBack()} // Kembali ke layar sebelumnya
@@ -42,7 +105,7 @@ export default function BlogDetail({ route }) {
               <Share2 color={theme.colors.text} size={20} />
             </TouchableOpacity>
           </View>
-        </View>
+        </Animated.View>
 
         {/* Badge Kategori Artikel */}
         <View style={styles.categoryBadge}>
@@ -50,10 +113,13 @@ export default function BlogDetail({ route }) {
         </View>
       </View>
 
+      {/* ScrollView konten artikel — onScroll terhubung ke handler animasi */}
       <ScrollView 
         style={styles.contentContainer} 
         showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.scrollContent}
+        onScroll={handleScroll}
+        scrollEventThrottle={16} // Memastikan event onScroll cukup sering dipanggil (~60fps)
       >
         {/* Title and Info */}
         <Text style={styles.title}>{title}</Text>
@@ -88,7 +154,7 @@ export default function BlogDetail({ route }) {
         <View style={{ height: 50 }} />
       </ScrollView>
       
-      {/* Bottom Sticky Action (Optional) */}
+      {/* Bottom Sticky Action */}
       <View style={styles.bottomActions}>
         <TouchableOpacity style={styles.mainButton}>
           <Text style={styles.mainButtonText}>Save for later</Text>

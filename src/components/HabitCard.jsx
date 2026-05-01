@@ -1,19 +1,43 @@
-import React from "react";
-import { View, Text, TouchableOpacity, StyleSheet } from "react-native";
+import React, { useRef } from "react";
+import { View, Text, TouchableWithoutFeedback, StyleSheet, Animated } from "react-native";
 import theme from "../../assets/theme";
 
 const HabitCard = ({ Icon, label, color, bgColor, onPress }) => {
+  // Animated value untuk efek skala saat ditekan
+  const scaleAnim = useRef(new Animated.Value(1)).current;
+
+  // Mengecilkan kartu saat jari menyentuh
+  const handlePressIn = () => {
+    Animated.timing(scaleAnim, {
+      toValue: 0.9,
+      duration: 120,
+      useNativeDriver: true,
+    }).start();
+  };
+
+  // Mengembalikan ukuran dengan efek spring saat jari diangkat
+  const handlePressOut = () => {
+    Animated.spring(scaleAnim, {
+      toValue: 1,
+      useNativeDriver: true,
+      speed: 20,
+      bounciness: 8,
+    }).start();
+  };
+
   return (
-    <TouchableOpacity 
-      style={styles.habitCardScroll} 
-      activeOpacity={0.8}
+    <TouchableWithoutFeedback
+      onPressIn={handlePressIn}
+      onPressOut={handlePressOut}
       onPress={onPress}
     >
-      <View style={[styles.habitIconContainer, { backgroundColor: bgColor }]}>
-        <Icon size={24} color={color} />
-      </View>
-      <Text style={styles.habitText}>{label}</Text>
-    </TouchableOpacity>
+      <Animated.View style={[styles.habitCardScroll, { transform: [{ scale: scaleAnim }] }]}>
+        <View style={[styles.habitIconContainer, { backgroundColor: bgColor }]}>
+          <Icon size={24} color={color} />
+        </View>
+        <Text style={styles.habitText}>{label}</Text>
+      </Animated.View>
+    </TouchableWithoutFeedback>
   );
 };
 

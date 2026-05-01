@@ -1,25 +1,53 @@
-import React from "react";
-import { View, Text, TouchableOpacity, Image, StyleSheet } from "react-native";
+import React, { useRef } from "react";
+import { View, Text, TouchableWithoutFeedback, Image, StyleSheet, Animated } from "react-native";
 import { Clock } from "lucide-react-native";
 import theme from "../../assets/theme";
 
 const ArticleCard = ({ title, image, category, readTime, onPress }) => {
+  // Animated value untuk efek skala saat ditekan
+  const scaleAnim = useRef(new Animated.Value(1)).current;
+
+  // Mengecilkan kartu saat jari menyentuh
+  const handlePressIn = () => {
+    Animated.timing(scaleAnim, {
+      toValue: 0.95,
+      duration: 120,
+      useNativeDriver: true,
+    }).start();
+  };
+
+  // Mengembalikan ukuran dengan efek spring saat jari diangkat
+  const handlePressOut = () => {
+    Animated.spring(scaleAnim, {
+      toValue: 1,
+      useNativeDriver: true,
+      speed: 20,
+      bounciness: 6,
+    }).start();
+  };
+
   return (
-    <TouchableOpacity style={styles.gridCard} activeOpacity={0.9} onPress={onPress}>
-      <Image
-        style={styles.gridImage}
-        source={{ uri: image || "https://picsum.photos/400/200?blur=2" }}
-      />
-      <View style={styles.gridCardContent}>
-        <Text style={styles.gridCategory}>{category}</Text>
-        <Text style={styles.gridTitle} numberOfLines={2}>{title}</Text>
-        
-        <View style={styles.gridInfo}>
-          <Clock size={12} color={theme.colors.textSecondary} />
-          <Text style={styles.gridText}>{readTime}</Text>
+    <TouchableWithoutFeedback
+      onPressIn={handlePressIn}
+      onPressOut={handlePressOut}
+      onPress={onPress}
+    >
+      <Animated.View style={[styles.gridCard, { transform: [{ scale: scaleAnim }] }]}>
+        <Image
+          style={styles.gridImage}
+          source={{ uri: image || "https://picsum.photos/400/200?blur=2" }}
+        />
+        <View style={styles.gridCardContent}>
+          <Text style={styles.gridCategory}>{category}</Text>
+          <Text style={styles.gridTitle} numberOfLines={2}>{title}</Text>
+          
+          <View style={styles.gridInfo}>
+            <Clock size={12} color={theme.colors.textSecondary} />
+            <Text style={styles.gridText}>{readTime}</Text>
+          </View>
         </View>
-      </View>
-    </TouchableOpacity>
+      </Animated.View>
+    </TouchableWithoutFeedback>
   );
 };
 

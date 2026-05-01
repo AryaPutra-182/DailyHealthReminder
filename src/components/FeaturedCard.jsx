@@ -1,29 +1,57 @@
-import React from "react";
-import { View, Text, TouchableOpacity, ImageBackground, StyleSheet } from "react-native";
+import React, { useRef } from "react";
+import { View, Text, TouchableWithoutFeedback, ImageBackground, StyleSheet, Animated } from "react-native";
 import { Clock } from "lucide-react-native";
 import theme from "../../assets/theme";
 
 const FeaturedCard = ({ title, image, readTime, badgeText = "FEATURED", onPress }) => {
+  // Animated value untuk efek skala saat ditekan
+  const scaleAnim = useRef(new Animated.Value(1)).current;
+
+  // Mengecilkan kartu sedikit saat jari menyentuh
+  const handlePressIn = () => {
+    Animated.timing(scaleAnim, {
+      toValue: 0.97,
+      duration: 150,
+      useNativeDriver: true,
+    }).start();
+  };
+
+  // Mengembalikan ukuran dengan efek spring saat jari diangkat
+  const handlePressOut = () => {
+    Animated.spring(scaleAnim, {
+      toValue: 1,
+      useNativeDriver: true,
+      speed: 15,
+      bounciness: 5,
+    }).start();
+  };
+
   return (
     <View style={styles.featureCardContainer}>
-      <TouchableOpacity activeOpacity={0.9} onPress={onPress}>
-        <ImageBackground
-          style={styles.featureImage}
-          imageStyle={{ borderRadius: 24 }}
-          source={{ uri: image || "https://picsum.photos/600/300?blur=1" }}
-        >
-          <View style={styles.featureOverlay}>
-            <View style={styles.featureBadge}>
-              <Text style={styles.featureBadgeText}>{badgeText}</Text>
+      <TouchableWithoutFeedback
+        onPressIn={handlePressIn}
+        onPressOut={handlePressOut}
+        onPress={onPress}
+      >
+        <Animated.View style={{ transform: [{ scale: scaleAnim }] }}>
+          <ImageBackground
+            style={styles.featureImage}
+            imageStyle={{ borderRadius: 24 }}
+            source={{ uri: image || "https://picsum.photos/600/300?blur=1" }}
+          >
+            <View style={styles.featureOverlay}>
+              <View style={styles.featureBadge}>
+                <Text style={styles.featureBadgeText}>{badgeText}</Text>
+              </View>
+              <Text style={styles.featureTitle}>{title}</Text>
+              <View style={styles.featureMeta}>
+                <Clock size={14} color="#E0E0E0" />
+                <Text style={styles.featureMetaText}>{readTime} read</Text>
+              </View>
             </View>
-            <Text style={styles.featureTitle}>{title}</Text>
-            <View style={styles.featureMeta}>
-              <Clock size={14} color="#E0E0E0" />
-              <Text style={styles.featureMetaText}>{readTime} read</Text>
-            </View>
-          </View>
-        </ImageBackground>
-      </TouchableOpacity>
+          </ImageBackground>
+        </Animated.View>
+      </TouchableWithoutFeedback>
     </View>
   );
 };
