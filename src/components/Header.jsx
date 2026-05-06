@@ -1,20 +1,39 @@
 import React from "react";
-import { View, Text, Image, StyleSheet } from "react-native";
+import { View, Text, Image, StyleSheet, TouchableOpacity } from "react-native";
+import { Plus } from "lucide-react-native";
+import { useNavigation } from "@react-navigation/native";
 import theme from "../../assets/theme";
 
+// Komponen Header: Menampilkan salam pengguna, avatar, dan tombol tambah artikel
 const Header = ({ title, subtitle, userImage }) => {
+  const navigation = useNavigation();
+
   return (
     <View style={styles.header}>
-      <View>
+      {/* Sisi kiri: Salam dan nama pengguna */}
+      <View style={styles.leftSection}>
         <Text style={styles.title}>{title}</Text>
         <Text style={styles.subtitle}>{subtitle}</Text>
       </View>
-      
-      <View style={styles.avatarContainer}>
-        <Image 
-          source={{ uri: userImage || "https://picsum.photos/100/100" }} 
-          style={styles.avatar}
-        />
+
+      {/* Sisi kanan: Tombol + tambah artikel dan avatar */}
+      <View style={styles.rightSection}>
+        {/* Tombol FAB tambah artikel */}
+        <TouchableOpacity
+          style={styles.addButton}
+          onPress={() => navigation.navigate("AddArticle")}
+          activeOpacity={0.8}
+        >
+          <Plus color={theme.colors.primary} size={20} />
+        </TouchableOpacity>
+
+        {/* Avatar pengguna */}
+        <View style={styles.avatarContainer}>
+          <Image
+            source={{ uri: userImage || "https://picsum.photos/100/100" }}
+            style={styles.avatar}
+          />
+        </View>
       </View>
     </View>
   );
@@ -27,7 +46,15 @@ const styles = StyleSheet.create({
     paddingBottom: 25,
     flexDirection: "row",
     justifyContent: "space-between",
-    alignItems: "center"
+    alignItems: "center",
+  },
+  leftSection: {
+    flex: 1,
+  },
+  rightSection: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 12,
   },
   title: {
     fontSize: 28,
@@ -40,6 +67,18 @@ const styles = StyleSheet.create({
     color: theme.colors.textSecondary,
     marginTop: 4,
   },
+  // Tombol tambah artikel
+  addButton: {
+    width: 40,
+    height: 40,
+    borderRadius: 12,
+    backgroundColor: "rgba(76, 175, 80, 0.12)",
+    borderWidth: 1,
+    borderColor: "rgba(76, 175, 80, 0.3)",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  // Avatar
   avatarContainer: {
     width: 48,
     height: 48,
@@ -53,7 +92,7 @@ const styles = StyleSheet.create({
     width: "100%",
     height: "100%",
     borderRadius: 24,
-    backgroundColor: theme.colors.border, // Debug background color
+    backgroundColor: theme.colors.border,
   },
 });
 
