@@ -17,6 +17,7 @@ import SplashScreen from "../screens/SplashScreen";
 import LoginScreen from "../screens/LoginScreen";
 import RegisterScreen from "../screens/RegisterScreen";
 import AddArticleScreen from "../screens/AddArticleScreen";
+import EditArticleScreen from "../screens/EditArticleScreen";
 
 const Tab = createBottomTabNavigator();
 const Stack = createNativeStackNavigator();
@@ -93,6 +94,7 @@ const Router = () => {
       <Stack.Screen name="BlogDetail" component={BlogDetail} />
       <Stack.Screen name="SettingsDetail" component={SettingsDetail} />
       <Stack.Screen name="AddArticle" component={AddArticleScreen} />
+      <Stack.Screen name="EditArticle" component={EditArticleScreen} />
     </Stack.Navigator>
   );
 };

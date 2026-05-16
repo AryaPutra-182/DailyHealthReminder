@@ -1,6 +1,6 @@
 import React, { useRef } from "react";
 import { View, Text, Image, StyleSheet, ScrollView, TouchableOpacity, StatusBar, Animated } from "react-native";
-import { ChevronLeft, Clock, Share2, Bookmark, User } from "lucide-react-native";
+import { ChevronLeft, Clock, Share2, Bookmark, User, ImageOff } from "lucide-react-native";
 import { useNavigation } from "@react-navigation/native";
 import theme from "../../assets/theme";
 
@@ -8,10 +8,14 @@ import theme from "../../assets/theme";
 export default function BlogDetail({ route }) {
   // Mengambil fungsi navigasi dan parameter data artikel yang dikirim saat navigasi
   const navigation = useNavigation();
-  const { title, image, category, readTime, content } = route.params || {};
+  const { title, image, category, readTime, description } = route.params || {};
 
-  // Konten cadangan jika data konten tidak tersedia
-  const articleContent = content || "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.\n\nDuis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.";
+  // Konten cadangan jika description kosong
+  const articleContent = description?.trim()
+    ? description
+    : "Deskripsi artikel belum tersedia.";
+
+
 
   // --- Animasi Hide-on-Scroll untuk topNav ---
   // Animated values untuk mengontrol posisi (translateY) dan transparansi (opacity) topNav
@@ -72,12 +76,19 @@ export default function BlogDetail({ route }) {
     <View style={styles.container}>
       <StatusBar barStyle="light-content" />
       
-      {/* Gambar Header */}
+      {/* Gambar Header — placeholder lokal jika image null */}
       <View style={styles.headerImageContainer}>
-        <Image
-          source={{ uri: image || "https://images.unsplash.com/photo-1546069901-ba9599a7e63c" }}
-          style={styles.headerImage}
-        />
+        {image ? (
+          <Image
+            source={{ uri: image }}
+            style={styles.headerImage}
+          />
+        ) : (
+          <View style={styles.headerImagePlaceholder}>
+            <ImageOff size={48} color="rgba(255,255,255,0.3)" strokeWidth={1.2} />
+            <Text style={styles.headerImagePlaceholderText}>Tidak ada gambar</Text>
+          </View>
+        )}
         <View style={styles.overlay} />
         
         {/* Bar Navigasi Atas: Dibungkus Animated.View untuk hide-on-scroll */}
@@ -142,16 +153,13 @@ export default function BlogDetail({ route }) {
 
         <View style={styles.divider} />
 
-        {/* Article Body */}
+        {/* Article Body: menampilkan description dari data artikel */}
         <Text style={styles.articleBody}>
           {articleContent}
         </Text>
-        
-        <Text style={styles.articleBody}>
-          Maintaining a healthy lifestyle is essential for overall well-being. This guide provides practical tips to help you stay on track with your fitness goals and nutrition.
-        </Text>
 
         <View style={{ height: 50 }} />
+
       </ScrollView>
       
       {/* Bottom Sticky Action */}

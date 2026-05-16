@@ -9,7 +9,7 @@ import FeaturedCard from "./FeaturedCard";
 import ArticleCard from "./ArticleCard";
 
 // Komponen ListBlog: Menampilkan daftar artikel dan habit di halaman Home
-export default function ListBlog({ userData, featuredArticle, habits, articles }) {
+export default function ListBlog({ userData, featuredArticle, habits, articles, onEdit, onDelete }) {
   // Hook untuk mengakses fungsi navigasi
   const navigation = useNavigation();
 
@@ -43,6 +43,7 @@ export default function ListBlog({ userData, featuredArticle, habits, articles }
       image: article.image,
       category: article.category,
       readTime: article.readTime,
+      description: article.description,
     });
   };
 
@@ -105,7 +106,10 @@ export default function ListBlog({ userData, featuredArticle, habits, articles }
               image={article.image}
               category={article.category}
               readTime={article.readTime}
+              createdAt={article.createdAt}
               onPress={() => handleArticlePress(article)}
+              onEdit={() => onEdit(article)}
+              onDelete={() => onDelete(article)}
             />
           ))}
         </View>

@@ -14,22 +14,25 @@ import {
 } from "react-native";
 import { ArrowLeft } from "lucide-react-native";
 import theme from "../../assets/theme";
-import { createArticle } from "../services/articleService";
+import { updateArticle } from "../services/articleService";
 
-// Screen AddArticleScreen: Halaman untuk menambah artikel/data baru
-export default function AddArticleScreen({ navigation }) {
-  // State untuk setiap field form
-  const [title, setTitle] = useState("");
-  const [category, setCategory] = useState("");
-  const [readTime, setReadTime] = useState("");
-  const [description, setDescription] = useState("");
-  const [imageUrl, setImageUrl] = useState("");
+// Screen EditArticleScreen: Halaman untuk mengedit artikel yang sudah ada
+export default function EditArticleScreen({ navigation, route }) {
+  // Ambil data artikel yang akan diedit dari parameter navigasi
+  const { article } = route.params || {};
 
-  // State untuk loading dan error saat request API
+  // Pre-fill state dengan data artikel yang ada
+  const [title, setTitle] = useState(article?.title || "");
+  const [category, setCategory] = useState(article?.category || "");
+  const [readTime, setReadTime] = useState(article?.readTime || "");
+  const [description, setDescription] = useState(article?.description || "");
+  const [imageUrl, setImageUrl] = useState(article?.image || "");
+
+  // State loading dan error saat request API
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
-  // Animated values
+  // Animated values untuk efek masuk
   const fadeAnim = useRef(new Animated.Value(0)).current;
   const slideAnim = useRef(new Animated.Value(30)).current;
 
@@ -49,52 +52,50 @@ export default function AddArticleScreen({ navigation }) {
     ]).start();
   }, []);
 
-  // Fungsi reset form ke kondisi awal
-  const handleClear = () => {
-    setTitle("");
-    setCategory("");
-    setReadTime("");
-    setDescription("");
-    setImageUrl("");
+  // Fungsi reset form ke data awal (sebelum diedit)
+  const handleReset = () => {
+    setTitle(article?.title || "");
+    setCategory(article?.category || "");
+    setReadTime(article?.readTime || "");
+    setDescription(article?.description || "");
+    setImageUrl(article?.image || "");
+    setError(null);
   };
 
-  // Fungsi simpan — mengirim data artikel ke MockAPI via HTTP POST
+  // Fungsi simpan perubahan — mengirim HTTP PUT ke MockAPI
   const handleSave = async () => {
     if (!title.trim() || !category.trim()) {
       Alert.alert("Peringatan", "Judul dan kategori wajib diisi!");
       return;
     }
 
-    // Siapkan payload sesuai skema artikel (termasuk tanggal pembuatan)
+    // Payload update: pertahankan createdAt yang asli
     const payload = {
       title: title.trim(),
       category: category.trim(),
       readTime: readTime.trim() || "5 min",
       image: imageUrl.trim() || null,
       description: description.trim(),
-      createdAt: new Date().toISOString(), // Tanggal pembuatan artikel
+      createdAt: article?.createdAt || new Date().toISOString(),
     };
 
     try {
       setLoading(true);
       setError(null);
 
-      // Kirim POST ke MockAPI
-      const result = await createArticle(payload);
+      // Kirim PUT ke MockAPI dengan id artikel
+      await updateArticle(article.id, payload);
 
-      // Berhasil: tampilkan notifikasi dan kembali ke halaman sebelumnya
       Alert.alert(
-        "Berhasil!",
-        `Artikel "${result.title}" berhasil ditambahkan ke server!`,
+        "Berhasil! ✅",
+        `Artikel "${payload.title}" berhasil diperbarui!`,
         [{ text: "OK", onPress: () => navigation.goBack() }]
       );
-      handleClear();
     } catch (err) {
-      // Gagal: tampilkan pesan error
-      setError("Gagal menyimpan artikel. Periksa koneksi dan coba lagi.");
+      setError("Gagal memperbarui artikel. Periksa koneksi dan coba lagi.");
       Alert.alert(
-        "Gagal Menyimpan",
-        "Terjadi kesalahan saat mengirim data. Pastikan koneksi internet kamu aktif."
+        "Gagal Update",
+        "Terjadi kesalahan saat memperbarui data. Pastikan koneksi internet aktif."
       );
     } finally {
       setLoading(false);
@@ -106,7 +107,7 @@ export default function AddArticleScreen({ navigation }) {
       style={styles.container}
       behavior={Platform.OS === "ios" ? "padding" : "height"}
     >
-      {/* Header dengan tombol kembali */}
+      {/* Header */}
       <Animated.View
         style={[styles.header, { opacity: fadeAnim, transform: [{ translateY: slideAnim }] }]}
       >
@@ -118,10 +119,10 @@ export default function AddArticleScreen({ navigation }) {
           <ArrowLeft color={theme.colors.text} size={22} />
         </TouchableOpacity>
         <View style={styles.headerTitle}>
-          <Text style={styles.headerTitleText}>Tambah Artikel</Text>
-          <Text style={styles.headerSubtitle}>Isi data artikel baru</Text>
+          <Text style={styles.headerTitleText}>Edit Artikel</Text>
+          <Text style={styles.headerSubtitle}>Perbarui data artikel</Text>
         </View>
-        {/* Tombol simpan di header (shortcut) */}
+        {/* Tombol simpan di header */}
         <TouchableOpacity
           style={[styles.saveHeaderBtn, loading && styles.saveHeaderBtnDisabled]}
           onPress={handleSave}
@@ -239,17 +240,17 @@ export default function AddArticleScreen({ navigation }) {
 
           {/* Baris Tombol Aksi */}
           <View style={styles.actionRow}>
-            {/* Tombol Batal/Clear */}
+            {/* Tombol Reset ke data awal */}
             <TouchableOpacity
               style={styles.clearButton}
-              onPress={handleClear}
+              onPress={handleReset}
               activeOpacity={0.8}
               disabled={loading}
             >
               <Text style={styles.clearButtonText}>Reset</Text>
             </TouchableOpacity>
 
-            {/* Tombol Simpan: menampilkan loading spinner saat request berlangsung */}
+            {/* Tombol Simpan */}
             <TouchableOpacity
               style={[styles.saveButton, loading && styles.saveButtonDisabled]}
               onPress={handleSave}
@@ -259,7 +260,7 @@ export default function AddArticleScreen({ navigation }) {
               {loading ? (
                 <ActivityIndicator color="#fff" size="small" />
               ) : (
-                <Text style={styles.saveButtonText}>Simpan Artikel</Text>
+                <Text style={styles.saveButtonText}>Perbarui Artikel</Text>
               )}
             </TouchableOpacity>
           </View>
@@ -318,13 +319,18 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     borderWidth: 1,
     borderColor: "rgba(76, 175, 80, 0.3)",
+    minWidth: 68,
+    alignItems: "center",
+  },
+  saveHeaderBtnDisabled: {
+    opacity: 0.5,
   },
   saveHeaderText: {
     color: theme.colors.primary,
     fontSize: 13,
     fontFamily: "Poppins-SemiBold",
   },
-  // Scroll content
+  // Scroll
   scroll: {
     flex: 1,
   },
@@ -373,6 +379,21 @@ const styles = StyleSheet.create({
     textAlign: "right",
     marginTop: 4,
   },
+  // Error box
+  errorBox: {
+    backgroundColor: "rgba(255, 76, 76, 0.1)",
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: "rgba(255, 76, 76, 0.3)",
+    padding: 12,
+    marginBottom: 12,
+  },
+  errorText: {
+    color: theme.colors.danger,
+    fontSize: 13,
+    fontFamily: "Poppins-Regular",
+    textAlign: "center",
+  },
   // Baris tombol aksi
   actionRow: {
     flexDirection: "row",
@@ -401,30 +422,12 @@ const styles = StyleSheet.create({
     backgroundColor: theme.colors.primary,
   },
   saveButtonDisabled: {
-    backgroundColor: theme.colors.primary + "99", // opacity 60%
+    backgroundColor: theme.colors.primary + "99",
   },
   saveButtonText: {
     color: "#fff",
     fontSize: 14,
     fontFamily: "Poppins-SemiBold",
     letterSpacing: 0.3,
-  },
-  saveHeaderBtnDisabled: {
-    opacity: 0.5,
-  },
-  // Kotak pesan error
-  errorBox: {
-    backgroundColor: "rgba(255, 76, 76, 0.1)",
-    borderRadius: 10,
-    borderWidth: 1,
-    borderColor: "rgba(255, 76, 76, 0.3)",
-    padding: 12,
-    marginBottom: 12,
-  },
-  errorText: {
-    color: theme.colors.danger,
-    fontSize: 13,
-    fontFamily: "Poppins-Regular",
-    textAlign: "center",
   },
 });

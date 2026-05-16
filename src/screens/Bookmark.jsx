@@ -82,6 +82,7 @@ export default function Bookmark() {
       image: article.image,
       category: article.category,
       readTime: article.readTime,
+      description: article.description,
     });
   };
 

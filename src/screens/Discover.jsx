@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useRef, useState, useCallback } from "react";
 import {
   View,
   Text,
@@ -7,17 +7,26 @@ import {
   ScrollView,
   Animated,
   TouchableOpacity,
+  ActivityIndicator,
+  RefreshControl,
+  Alert,
 } from "react-native";
 import { Search, X } from "lucide-react-native";
-import { useNavigation } from "@react-navigation/native";
+import { useNavigation, useFocusEffect } from "@react-navigation/native";
 import theme from "../../assets/theme";
-import { INITIAL_ARTICLES } from "../data/blogData";
+import { getArticles, deleteArticle } from "../services/articleService";
 import ArticleCard from "../components/ArticleCard";
 
 // Screen Discover: Memungkinkan pengguna mencari artikel atau konten kesehatan
 export default function Discover() {
   // State untuk query pencarian
   const [searchQuery, setSearchQuery] = useState("");
+
+  // State untuk data artikel dari API
+  const [articles, setArticles] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
+  const [fetchError, setFetchError] = useState(null);
 
   // Hook navigasi
   const navigation = useNavigation();
@@ -26,6 +35,23 @@ export default function Discover() {
   const headerSlide = useRef(new Animated.Value(-30)).current;
   const headerFade = useRef(new Animated.Value(0)).current;
   const contentFade = useRef(new Animated.Value(0)).current;
+
+  // Fungsi fetch artikel dari MockAPI
+  const fetchArticles = async (isRefresh = false) => {
+    try {
+      if (isRefresh) setRefreshing(true);
+      else setLoading(true);
+      setFetchError(null);
+
+      const data = await getArticles();
+      setArticles(data);
+    } catch (err) {
+      setFetchError("Gagal memuat artikel. Tarik ke bawah untuk mencoba lagi.");
+    } finally {
+      setLoading(false);
+      setRefreshing(false);
+    }
+  };
 
   // Menjalankan animasi masuk saat screen pertama kali di-render
   useEffect(() => {
@@ -52,9 +78,16 @@ export default function Discover() {
     ]).start();
   }, []);
 
+  // Fetch ulang data setiap kali screen kembali aktif (contoh: setelah Edit)
+  useFocusEffect(
+    useCallback(() => {
+      fetchArticles();
+    }, [])
+  );
+
   // Filter artikel berdasarkan query pencarian (judul atau kategori)
-  // Jika kosong, tampilkan semua artikel
-  const filteredArticles = INITIAL_ARTICLES.filter((article) => {
+  // Jika kosong, tampilkan semua artikel dari API
+  const filteredArticles = articles.filter((article) => {
     if (!searchQuery.trim()) return true;
     const query = searchQuery.toLowerCase();
     return (
@@ -70,7 +103,37 @@ export default function Discover() {
       image: article.image,
       category: article.category,
       readTime: article.readTime,
+      description: article.description,
     });
+  };
+
+  // Fungsi navigasi ke form edit artikel
+  const handleEdit = (article) => {
+    navigation.navigate("EditArticle", { article });
+  };
+
+  // Fungsi hapus artikel dengan konfirmasi
+  const handleDelete = (article) => {
+    Alert.alert(
+      "Hapus Artikel",
+      `Yakin ingin menghapus "${article.title}"? Tindakan ini tidak bisa dibatalkan.`,
+      [
+        { text: "Batal", style: "cancel" },
+        {
+          text: "Hapus",
+          style: "destructive",
+          onPress: async () => {
+            try {
+              await deleteArticle(article.id);
+              // Hapus dari state lokal tanpa perlu fetch ulang
+              setArticles((prev) => prev.filter((a) => a.id !== article.id));
+            } catch (err) {
+              Alert.alert("Gagal", "Artikel gagal dihapus. Coba lagi.");
+            }
+          },
+        },
+      ]
+    );
   };
 
   // Tampilkan empty state saat ada query tapi tidak ada hasil
@@ -124,38 +187,86 @@ export default function Discover() {
 
       {/* Area Konten: fade-in setelah header selesai animasi */}
       <Animated.View style={{ flex: 1, opacity: contentFade }}>
-        <ScrollView
-          contentContainerStyle={styles.content}
-          showsVerticalScrollIndicator={false}
-          keyboardShouldPersistTaps="handled"
-        >
-          {/* Empty state saat ada query tapi tidak ada hasil */}
-          {showNoResult && (
-            <View style={styles.emptyState}>
-              <Text style={styles.emptyEmoji}>😕</Text>
-              <Text style={styles.emptyTitle}>Tidak Ditemukan</Text>
-              <Text style={styles.emptyText}>
-                Tidak ada artikel untuk "{searchQuery}"{"\n"}Coba kata kunci lain
-              </Text>
-            </View>
-          )}
+        {/* Loading state */}
+        {loading && (
+          <View style={styles.centerState}>
+            <ActivityIndicator size="large" color={theme.colors.primary} />
+            <Text style={styles.loadingText}>Memuat artikel...</Text>
+          </View>
+        )}
 
-          {/* Grid artikel — tampil semua saat kosong, filter saat ada query */}
-          {!showNoResult && (
-            <View style={styles.grid}>
-              {filteredArticles.map((article) => (
-                <ArticleCard
-                  key={article.id}
-                  title={article.title}
-                  image={article.image}
-                  category={article.category}
-                  readTime={article.readTime}
-                  onPress={() => handleArticlePress(article)}
-                />
-              ))}
-            </View>
-          )}
-        </ScrollView>
+        {/* Error state */}
+        {!loading && fetchError && (
+          <View style={styles.centerState}>
+            <Text style={styles.errorEmoji}>⚠️</Text>
+            <Text style={styles.errorTitle}>Gagal Memuat</Text>
+            <Text style={styles.errorText}>{fetchError}</Text>
+            <TouchableOpacity
+              style={styles.retryButton}
+              onPress={() => fetchArticles()}
+            >
+              <Text style={styles.retryText}>Coba Lagi</Text>
+            </TouchableOpacity>
+          </View>
+        )}
+
+        {/* Konten artikel */}
+        {!loading && !fetchError && (
+          <ScrollView
+            contentContainerStyle={styles.content}
+            showsVerticalScrollIndicator={false}
+            keyboardShouldPersistTaps="handled"
+            refreshControl={
+              <RefreshControl
+                refreshing={refreshing}
+                onRefresh={() => fetchArticles(true)}
+                colors={[theme.colors.primary]}
+                tintColor={theme.colors.primary}
+              />
+            }
+          >
+            {/* Empty state saat ada query tapi tidak ada hasil */}
+            {showNoResult && (
+              <View style={styles.emptyState}>
+                <Text style={styles.emptyEmoji}>😕</Text>
+                <Text style={styles.emptyTitle}>Tidak Ditemukan</Text>
+                <Text style={styles.emptyText}>
+                  Tidak ada artikel untuk "{searchQuery}"{"\n"}Coba kata kunci lain
+                </Text>
+              </View>
+            )}
+
+            {/* Empty state saat API kosong dan tidak ada search */}
+            {!showNoResult && articles.length === 0 && (
+              <View style={styles.emptyState}>
+                <Text style={styles.emptyEmoji}>📭</Text>
+                <Text style={styles.emptyTitle}>Belum Ada Artikel</Text>
+                <Text style={styles.emptyText}>
+                  Tambahkan artikel pertamamu melalui form Tambah Artikel!
+                </Text>
+              </View>
+            )}
+
+            {/* Grid artikel */}
+            {!showNoResult && articles.length > 0 && (
+              <View style={styles.grid}>
+                {filteredArticles.map((article) => (
+                  <ArticleCard
+                    key={article.id}
+                    title={article.title}
+                    image={article.image}
+                    category={article.category}
+                    readTime={article.readTime}
+                    createdAt={article.createdAt}
+                    onPress={() => handleArticlePress(article)}
+                    onEdit={() => handleEdit(article)}
+                    onDelete={() => handleDelete(article)}
+                  />
+                ))}
+              </View>
+            )}
+          </ScrollView>
+        )}
       </Animated.View>
     </View>
   );
@@ -244,5 +355,46 @@ const styles = StyleSheet.create({
     fontFamily: "Poppins-Regular",
     textAlign: "center",
     lineHeight: 20,
+  },
+  // Loading / Error center state
+  centerState: {
+    flex: 1,
+    alignItems: "center",
+    justifyContent: "center",
+    paddingVertical: 60,
+  },
+  loadingText: {
+    marginTop: 14,
+    color: theme.colors.textSecondary,
+    fontFamily: "Poppins-Regular",
+    fontSize: 14,
+  },
+  errorEmoji: {
+    fontSize: 48,
+    marginBottom: 12,
+  },
+  errorTitle: {
+    fontSize: 17,
+    color: theme.colors.text,
+    fontFamily: "Poppins-SemiBold",
+    marginBottom: 6,
+  },
+  errorText: {
+    color: theme.colors.textSecondary,
+    fontFamily: "Poppins-Regular",
+    fontSize: 13,
+    textAlign: "center",
+    marginBottom: 18,
+  },
+  retryButton: {
+    backgroundColor: theme.colors.primary,
+    paddingHorizontal: 28,
+    paddingVertical: 10,
+    borderRadius: 12,
+  },
+  retryText: {
+    color: "#fff",
+    fontFamily: "Poppins-SemiBold",
+    fontSize: 14,
   },
 });
