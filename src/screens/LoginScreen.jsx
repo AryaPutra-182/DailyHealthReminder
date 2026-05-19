@@ -10,18 +10,25 @@ import {
   Platform,
   ScrollView,
   Dimensions,
+  ActivityIndicator,
+  Alert,
 } from "react-native";
 import { Eye, EyeOff, Mail, Lock, Activity } from "lucide-react-native";
 import theme from "../../assets/theme";
+import { loginUser } from "../services/authService";
 
 const { width } = Dimensions.get("window");
 
-// Screen LoginScreen: Halaman login pengguna (UI only, tanpa logika autentikasi)
+// Screen LoginScreen: Halaman login pengguna menggunakan Supabase Auth
 export default function LoginScreen({ navigation }) {
   // State untuk nilai input form
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
+
+  // State untuk loading dan error
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
 
   // Animated values untuk animasi masuk
   const fadeAnim = useRef(new Animated.Value(0)).current;
@@ -60,6 +67,31 @@ export default function LoginScreen({ navigation }) {
       ]),
     ]).start();
   }, []);
+
+  // Fungsi login menggunakan Supabase Auth
+  const handleLogin = async () => {
+    if (!email.trim() || !password.trim()) {
+      setError("Email dan password wajib diisi!");
+      return;
+    }
+
+    try {
+      setLoading(true);
+      setError(null);
+      await loginUser(email.trim(), password);
+      // Berhasil login → pindah ke halaman utama
+      navigation.replace("Main");
+    } catch (err) {
+      // Tampilkan pesan error dari Supabase (sudah dalam Bahasa Inggris)
+      setError(
+        err.message === "Invalid login credentials"
+          ? "Email atau password salah. Silakan coba lagi."
+          : err.message
+      );
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <KeyboardAvoidingView
@@ -106,6 +138,13 @@ export default function LoginScreen({ navigation }) {
             },
           ]}
         >
+          {/* Pesan Error */}
+          {error && (
+            <View style={styles.errorBox}>
+              <Text style={styles.errorText}>{error}</Text>
+            </View>
+          )}
+
           {/* Field Email */}
           <View style={styles.inputGroup}>
             <Text style={styles.label}>Email</Text>
@@ -113,10 +152,10 @@ export default function LoginScreen({ navigation }) {
               <Mail color={theme.colors.textSecondary} size={18} />
               <TextInput
                 style={styles.input}
-                placeholder="Masukkan email kamu"
+                placeholder="Masukkan email"
                 placeholderTextColor={theme.colors.textSecondary}
                 value={email}
-                onChangeText={setEmail}
+                onChangeText={(t) => { setEmail(t); setError(null); }}
                 keyboardType="email-address"
                 autoCapitalize="none"
                 autoCorrect={false}
@@ -131,10 +170,10 @@ export default function LoginScreen({ navigation }) {
               <Lock color={theme.colors.textSecondary} size={18} />
               <TextInput
                 style={styles.input}
-                placeholder="Masukkan password kamu"
+                placeholder="Masukkan password"
                 placeholderTextColor={theme.colors.textSecondary}
                 value={password}
-                onChangeText={setPassword}
+                onChangeText={(t) => { setPassword(t); setError(null); }}
                 secureTextEntry={!showPassword}
                 autoCapitalize="none"
               />
@@ -157,13 +196,18 @@ export default function LoginScreen({ navigation }) {
             <Text style={styles.forgotText}>Lupa password?</Text>
           </TouchableOpacity>
 
-          {/* Tombol Login — navigasi langsung ke Main (tanpa validasi) */}
+          {/* Tombol Login */}
           <TouchableOpacity
-            style={styles.loginButton}
-            onPress={() => navigation.replace("Main")}
+            style={[styles.loginButton, loading && styles.loginButtonDisabled]}
+            onPress={handleLogin}
             activeOpacity={0.85}
+            disabled={loading}
           >
-            <Text style={styles.loginButtonText}>Masuk</Text>
+            {loading ? (
+              <ActivityIndicator color="#fff" size="small" />
+            ) : (
+              <Text style={styles.loginButtonText}>Masuk</Text>
+            )}
           </TouchableOpacity>
 
           {/* Divider */}
@@ -264,6 +308,21 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: theme.colors.border,
   },
+  // Error box
+  errorBox: {
+    backgroundColor: "rgba(255, 76, 76, 0.1)",
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: "rgba(255, 76, 76, 0.3)",
+    padding: 12,
+    marginBottom: 16,
+  },
+  errorText: {
+    color: theme.colors.danger,
+    fontSize: 13,
+    fontFamily: "Poppins-Regular",
+    textAlign: "center",
+  },
   inputGroup: {
     marginBottom: 16,
   },
@@ -308,6 +367,9 @@ const styles = StyleSheet.create({
     paddingVertical: 15,
     alignItems: "center",
     marginBottom: 20,
+  },
+  loginButtonDisabled: {
+    backgroundColor: theme.colors.primary + "99",
   },
   loginButtonText: {
     color: "#fff",

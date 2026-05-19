@@ -8,16 +8,36 @@ import {
 } from "../data/blogData";
 import { PROFILE_DATA } from "../data/profile";
 import { getArticles, deleteArticle } from "../services/articleService";
+import { getCurrentUser } from "../services/authService";
 import theme from "../../assets/theme";
 
 // Screen Home: Menampilkan halaman utama aplikasi kesehatan
 export default function Home() {
   const navigation = useNavigation();
   // Inisialisasi state untuk data profil pengguna
-  const [userData] = useState(PROFILE_DATA);
+  const [userData, setUserData] = useState(PROFILE_DATA);
 
-  // Inisialisasi state untuk artikel utama dan kebiasaan (data statis)
-  const [featuredArticle] = useState(INITIAL_FEATURED_ARTICLE);
+  // Ambil nama user yang login dari Supabase
+  useEffect(() => {
+    const fetchUserProfile = async () => {
+      try {
+        const user = await getCurrentUser();
+        if (user) {
+          const fullName = user.user_metadata?.full_name || user.email.split('@')[0];
+          setUserData((prev) => ({
+            ...prev,
+            name: fullName,
+          }));
+        }
+      } catch (error) {
+        console.error("Gagal mengambil profil user:", error);
+      }
+    };
+    fetchUserProfile();
+  }, []);
+
+  // Inisialisasi state untuk artikel utama dan kebiasaan
+  const [featuredArticle, setFeaturedArticle] = useState(INITIAL_FEATURED_ARTICLE);
   const [habits] = useState(INITIAL_HABITS);
 
   // State untuk artikel dari API
@@ -30,6 +50,25 @@ export default function Home() {
       setLoading(true);
       const data = await getArticles();
       setArticles(data);
+      
+      // Gunakan artikel terbaru sebagai Featured Article (jika ada data)
+      if (data && data.length > 0) {
+        const latestArticle = data[0];
+        setFeaturedArticle({
+          id: latestArticle.id,
+          title: latestArticle.title,
+          image: latestArticle.image_url,
+          image_url: latestArticle.image_url, // Dibutuhkan oleh navigasi ListBlog
+          category: latestArticle.category,
+          readTime: latestArticle.read_time,
+          read_time: latestArticle.read_time, // Dibutuhkan oleh navigasi ListBlog
+          description: latestArticle.description,
+          badgeText: "TERBARU", // Ubah text badge menjadi TERBARU
+        });
+      } else {
+        // Jika tidak ada artikel, kembalikan ke nilai awal
+        setFeaturedArticle(INITIAL_FEATURED_ARTICLE);
+      }
     } catch (err) {
       console.error("[Home] Gagal fetch artikel:", err);
     } finally {

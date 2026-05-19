@@ -10,13 +10,15 @@ import {
   Platform,
   ScrollView,
   Dimensions,
+  ActivityIndicator,
 } from "react-native";
 import { Eye, EyeOff, Mail, Lock, User, Activity } from "lucide-react-native";
 import theme from "../../assets/theme";
+import { registerUser } from "../services/authService";
 
 const { width } = Dimensions.get("window");
 
-// Screen RegisterScreen: Halaman registrasi pengguna baru (UI only, tanpa logika autentikasi)
+// Screen RegisterScreen: Halaman registrasi pengguna baru menggunakan Supabase Auth
 export default function RegisterScreen({ navigation }) {
   // State untuk nilai input form
   const [name, setName] = useState("");
@@ -25,6 +27,10 @@ export default function RegisterScreen({ navigation }) {
   const [confirmPassword, setConfirmPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+
+  // State untuk loading dan error
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
 
   // Animated values untuk animasi masuk
   const fadeAnim = useRef(new Animated.Value(0)).current;
@@ -61,6 +67,43 @@ export default function RegisterScreen({ navigation }) {
       ]),
     ]).start();
   }, []);
+
+  // Reset error saat input berubah
+  const clearError = () => setError(null);
+
+  // Fungsi registrasi menggunakan Supabase Auth
+  const handleRegister = async () => {
+    // Validasi input
+    if (!name.trim() || !email.trim() || !password.trim() || !confirmPassword.trim()) {
+      setError("Semua field wajib diisi!");
+      return;
+    }
+    if (password !== confirmPassword) {
+      setError("Password dan konfirmasi password tidak cocok!");
+      return;
+    }
+    if (password.length < 6) {
+      setError("Password minimal 6 karakter!");
+      return;
+    }
+
+    try {
+      setLoading(true);
+      setError(null);
+      await registerUser(email.trim(), password, name.trim());
+      // Berhasil daftar → kembali ke Login dengan notif
+      navigation.navigate("Login");
+      // Tampilkan pesan sukses dengan alert bawaan (bisa diganti toast)
+    } catch (err) {
+      setError(
+        err.message.includes("already registered")
+          ? "Email ini sudah terdaftar. Silakan login."
+          : err.message
+      );
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <KeyboardAvoidingView
@@ -107,6 +150,13 @@ export default function RegisterScreen({ navigation }) {
             },
           ]}
         >
+          {/* Pesan Error */}
+          {error && (
+            <View style={styles.errorBox}>
+              <Text style={styles.errorText}>{error}</Text>
+            </View>
+          )}
+
           {/* Field Nama */}
           <View style={styles.inputGroup}>
             <Text style={styles.label}>Nama Lengkap</Text>
@@ -114,10 +164,10 @@ export default function RegisterScreen({ navigation }) {
               <User color={theme.colors.textSecondary} size={18} />
               <TextInput
                 style={styles.input}
-                placeholder="Masukkan nama lengkap"
+                placeholder="Nama lengkap"
                 placeholderTextColor={theme.colors.textSecondary}
                 value={name}
-                onChangeText={setName}
+                onChangeText={(t) => { setName(t); clearError(); }}
                 autoCapitalize="words"
                 autoCorrect={false}
               />
@@ -131,10 +181,10 @@ export default function RegisterScreen({ navigation }) {
               <Mail color={theme.colors.textSecondary} size={18} />
               <TextInput
                 style={styles.input}
-                placeholder="Masukkan email kamu"
+                placeholder="Masukkan email"
                 placeholderTextColor={theme.colors.textSecondary}
                 value={email}
-                onChangeText={setEmail}
+                onChangeText={(t) => { setEmail(t); clearError(); }}
                 keyboardType="email-address"
                 autoCapitalize="none"
                 autoCorrect={false}
@@ -149,10 +199,10 @@ export default function RegisterScreen({ navigation }) {
               <Lock color={theme.colors.textSecondary} size={18} />
               <TextInput
                 style={styles.input}
-                placeholder="Buat password kamu"
+                placeholder="Buat password"
                 placeholderTextColor={theme.colors.textSecondary}
                 value={password}
-                onChangeText={setPassword}
+                onChangeText={(t) => { setPassword(t); clearError(); }}
                 secureTextEntry={!showPassword}
                 autoCapitalize="none"
               />
@@ -176,10 +226,10 @@ export default function RegisterScreen({ navigation }) {
               <Lock color={theme.colors.textSecondary} size={18} />
               <TextInput
                 style={styles.input}
-                placeholder="Ulangi password kamu"
+                placeholder="Ulangi password"
                 placeholderTextColor={theme.colors.textSecondary}
                 value={confirmPassword}
-                onChangeText={setConfirmPassword}
+                onChangeText={(t) => { setConfirmPassword(t); clearError(); }}
                 secureTextEntry={!showConfirmPassword}
                 autoCapitalize="none"
               />
@@ -196,13 +246,18 @@ export default function RegisterScreen({ navigation }) {
             </View>
           </View>
 
-          {/* Tombol Register — navigasi kembali ke Login (tanpa logic validasi) */}
+          {/* Tombol Register */}
           <TouchableOpacity
-            style={styles.registerButton}
-            onPress={() => navigation.navigate("Login")}
+            style={[styles.registerButton, loading && styles.registerButtonDisabled]}
+            onPress={handleRegister}
             activeOpacity={0.85}
+            disabled={loading}
           >
-            <Text style={styles.registerButtonText}>Daftar</Text>
+            {loading ? (
+              <ActivityIndicator color="#fff" size="small" />
+            ) : (
+              <Text style={styles.registerButtonText}>Daftar</Text>
+            )}
           </TouchableOpacity>
 
           {/* Link ke Login */}
@@ -298,6 +353,21 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: theme.colors.border,
   },
+  // Error box
+  errorBox: {
+    backgroundColor: "rgba(255, 76, 76, 0.1)",
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: "rgba(255, 76, 76, 0.3)",
+    padding: 12,
+    marginBottom: 16,
+  },
+  errorText: {
+    color: theme.colors.danger,
+    fontSize: 13,
+    fontFamily: "Poppins-Regular",
+    textAlign: "center",
+  },
   inputGroup: {
     marginBottom: 14,
   },
@@ -332,6 +402,9 @@ const styles = StyleSheet.create({
     alignItems: "center",
     marginTop: 8,
     marginBottom: 20,
+  },
+  registerButtonDisabled: {
+    backgroundColor: theme.colors.secondary + "99",
   },
   registerButtonText: {
     color: "#fff",

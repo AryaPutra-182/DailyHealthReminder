@@ -1,8 +1,9 @@
 import React, { useRef } from "react";
 import { View, Text, Image, StyleSheet, ScrollView, TouchableOpacity, StatusBar, Animated } from "react-native";
 import { ChevronLeft, Clock, Share2, Bookmark, User, ImageOff } from "lucide-react-native";
-import { useNavigation } from "@react-navigation/native";
+import { useNavigation, useFocusEffect } from "@react-navigation/native";
 import theme from "../../assets/theme";
+import { isBookmarked, toggleBookmark } from "../services/bookmarkService";
 
 // Layar BlogDetail: Menampilkan konten artikel secara lengkap
 export default function BlogDetail({ route }) {
@@ -14,6 +15,31 @@ export default function BlogDetail({ route }) {
   const articleContent = description?.trim()
     ? description
     : "Deskripsi artikel belum tersedia.";
+
+  // State untuk menyimpan status apakah artikel ini di-bookmark
+  const [bookmarked, setBookmarked] = React.useState(false);
+
+  // Cek status bookmark saat pertama kali dibuka
+  useFocusEffect(
+    React.useCallback(() => {
+      const checkBookmark = async () => {
+        const status = await isBookmarked(title);
+        setBookmarked(status);
+      };
+      checkBookmark();
+    }, [title])
+  );
+
+  // Fungsi saat tombol bookmark ditekan
+  const handleToggleBookmark = async () => {
+    try {
+      const currentArticle = { title, image, category, readTime, description };
+      await toggleBookmark(currentArticle);
+      setBookmarked(!bookmarked); // ubah state secara optimis
+    } catch (err) {
+      console.error("Gagal toggle bookmark", err);
+    }
+  };
 
 
 
@@ -109,8 +135,12 @@ export default function BlogDetail({ route }) {
           </TouchableOpacity>
           
           <View style={styles.topActions}>
-            <TouchableOpacity style={styles.actionButton}>
-              <Bookmark color={theme.colors.text} size={20} />
+            <TouchableOpacity style={styles.actionButton} onPress={handleToggleBookmark}>
+              <Bookmark 
+                color={bookmarked ? theme.colors.primary : theme.colors.text} 
+                size={20} 
+                fill={bookmarked ? theme.colors.primary : "transparent"} 
+              />
             </TouchableOpacity>
             <TouchableOpacity style={styles.actionButton}>
               <Share2 color={theme.colors.text} size={20} />
@@ -164,8 +194,10 @@ export default function BlogDetail({ route }) {
       
       {/* Bottom Sticky Action */}
       <View style={styles.bottomActions}>
-        <TouchableOpacity style={styles.mainButton}>
-          <Text style={styles.mainButtonText}>Save for later</Text>
+        <TouchableOpacity style={styles.mainButton} onPress={handleToggleBookmark}>
+          <Text style={styles.mainButtonText}>
+            {bookmarked ? "Remove from bookmarks" : "Save for later"}
+          </Text>
         </TouchableOpacity>
       </View>
     </View>

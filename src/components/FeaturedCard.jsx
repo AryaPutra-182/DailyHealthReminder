@@ -33,11 +33,11 @@ const FeaturedCard = ({ title, image, readTime, badgeText = "FEATURED", onPress 
         onPressOut={handlePressOut}
         onPress={onPress}
       >
-        <Animated.View style={{ transform: [{ scale: scaleAnim }] }}>
+        <Animated.View style={[styles.cardWrapper, { transform: [{ scale: scaleAnim }] }]}>
           <ImageBackground
             style={styles.featureImage}
-            imageStyle={{ borderRadius: 24 }}
             source={{ uri: image || "https://picsum.photos/600/300?blur=1" }}
+            resizeMode="cover"
           >
             <View style={styles.featureOverlay}>
               <View style={styles.featureBadge}>
@@ -66,16 +66,19 @@ const styles = StyleSheet.create({
     shadowRadius: 10,
     elevation: 8,
   },
+  cardWrapper: {
+    borderRadius: 24,
+    overflow: "hidden", // Ini mengunci gambar dan overlay agar benar-benar rounded tanpa celah
+    backgroundColor: theme.colors.border,
+  },
   featureImage: {
     height: 220,
     width: "100%",
-    backgroundColor: theme.colors.border, // Debug background color
   },
   featureOverlay: {
     flex: 1,
     justifyContent: "flex-end",
     padding: 20,
-    borderRadius: 24,
     backgroundColor: "rgba(0,0,0,0.45)", 
   },
   featureBadge: {

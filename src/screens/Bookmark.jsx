@@ -9,8 +9,9 @@ import {
   Image,
 } from "react-native";
 import { Bookmark as BookmarkIcon, Clock, X } from "lucide-react-native";
-import { useNavigation } from "@react-navigation/native";
+import { useNavigation, useFocusEffect } from "@react-navigation/native";
 import theme from "../../assets/theme";
+import { getBookmarks, toggleBookmark } from "../services/bookmarkService";
 
 // Data sementara untuk artikel yang tersimpan di bookmark
 const BOOKMARKED_ARTICLES = [
@@ -55,11 +56,23 @@ const BOOKMARKED_ARTICLES = [
 export default function Bookmark() {
   const navigation = useNavigation();
 
+  // State untuk data bookmarks
+  const [bookmarks, setBookmarks] = React.useState([]);
+
+  // Fetch data dari storage setiap kali layar ini aktif
+  useFocusEffect(
+    React.useCallback(() => {
+      const fetchBookmarks = async () => {
+        const data = await getBookmarks();
+        setBookmarks(data);
+      };
+      fetchBookmarks();
+    }, [])
+  );
+
   // Animated values untuk efek fade-in dan slide-up
   const fadeAnim = useRef(new Animated.Value(0)).current;
   const slideAnim = useRef(new Animated.Value(30)).current;
-
-  // Menjalankan animasi masuk saat screen pertama kali di-render
   useEffect(() => {
     Animated.parallel([
       Animated.timing(fadeAnim, {
@@ -98,13 +111,13 @@ export default function Bookmark() {
         <View>
           <Text style={styles.title}>Bookmarks</Text>
           <Text style={styles.subtitle}>
-            {BOOKMARKED_ARTICLES.length} artikel tersimpan
+            {bookmarks.length} artikel tersimpan
           </Text>
         </View>
         {/* Badge jumlah bookmark */}
         <View style={styles.badge}>
           <BookmarkIcon color={theme.colors.primary} size={16} />
-          <Text style={styles.badgeText}>{BOOKMARKED_ARTICLES.length}</Text>
+          <Text style={styles.badgeText}>{bookmarks.length}</Text>
         </View>
       </Animated.View>
 
@@ -114,14 +127,25 @@ export default function Bookmark() {
         contentContainerStyle={styles.content}
         showsVerticalScrollIndicator={false}
       >
-        {BOOKMARKED_ARTICLES.map((article, index) => (
-          <BookmarkItem
-            key={article.id}
-            article={article}
-            index={index}
-            onPress={() => handleArticlePress(article)}
-          />
-        ))}
+        {bookmarks.length === 0 ? (
+          <View style={{ alignItems: 'center', marginTop: 100 }}>
+            <BookmarkIcon color={theme.colors.textSecondary} size={48} opacity={0.5} />
+            <Text style={{ color: theme.colors.textSecondary, marginTop: 16, fontFamily: "Poppins-Regular" }}>Belum ada bookmark</Text>
+          </View>
+        ) : (
+          bookmarks.map((article, index) => (
+            <BookmarkItem
+              key={article.title + index}
+              article={article}
+              index={index}
+              onPress={() => handleArticlePress(article)}
+              onRemove={async () => {
+                const newData = await toggleBookmark(article);
+                setBookmarks(newData);
+              }}
+            />
+          ))
+        )}
 
         <View style={{ height: 30 }} />
       </Animated.ScrollView>
@@ -130,7 +154,7 @@ export default function Bookmark() {
 }
 
 // Komponen item bookmark individual dengan animasi staggered
-function BookmarkItem({ article, index, onPress }) {
+function BookmarkItem({ article, index, onPress, onRemove }) {
   // Setiap item muncul dengan delay berbeda sesuai urutan (staggered)
   const itemFade = useRef(new Animated.Value(0)).current;
   const itemSlide = useRef(new Animated.Value(20)).current;
@@ -187,11 +211,11 @@ function BookmarkItem({ article, index, onPress }) {
           </View>
         </View>
 
-        {/* Tombol hapus bookmark (UI placeholder) */}
+        {/* Tombol hapus bookmark */}
         <TouchableOpacity
           style={styles.removeBtn}
           hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
-          onPress={() => {}} // TODO: logic hapus bookmark
+          onPress={onRemove}
         >
           <X size={14} color={theme.colors.textSecondary} />
         </TouchableOpacity>

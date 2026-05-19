@@ -40,9 +40,9 @@ export default function ListBlog({ userData, featuredArticle, habits, articles, 
   const handleArticlePress = (article) => {
     navigation.navigate("BlogDetail", {
       title: article.title,
-      image: article.image,
+      image: article.image_url,
       category: article.category,
-      readTime: article.readTime,
+      readTime: article.read_time,
       description: article.description,
     });
   };
@@ -103,10 +103,10 @@ export default function ListBlog({ userData, featuredArticle, habits, articles, 
             <ArticleCard 
               key={article.id}
               title={article.title}
-              image={article.image}
+              image={article.image_url}
               category={article.category}
-              readTime={article.readTime}
-              createdAt={article.createdAt}
+              readTime={article.read_time}
+              createdAt={article.created_at}
               onPress={() => handleArticlePress(article)}
               onEdit={() => onEdit(article)}
               onDelete={() => onDelete(article)}

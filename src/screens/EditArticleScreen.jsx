@@ -1,20 +1,21 @@
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState } from "react";
 import {
   View,
   Text,
   StyleSheet,
   TextInput,
   TouchableOpacity,
-  Animated,
   KeyboardAvoidingView,
   Platform,
   ScrollView,
   Alert,
   ActivityIndicator,
+  Image,
 } from "react-native";
-import { ArrowLeft } from "lucide-react-native";
+import { ArrowLeft, ImagePlus, X } from "lucide-react-native";
+import * as ImagePicker from "expo-image-picker";
 import theme from "../../assets/theme";
-import { updateArticle } from "../services/articleService";
+import { updateArticle, uploadArticleImage } from "../services/articleService";
 
 // Screen EditArticleScreen: Halaman untuk mengedit artikel yang sudah ada
 export default function EditArticleScreen({ navigation, route }) {
@@ -24,66 +25,102 @@ export default function EditArticleScreen({ navigation, route }) {
   // Pre-fill state dengan data artikel yang ada
   const [title, setTitle] = useState(article?.title || "");
   const [category, setCategory] = useState(article?.category || "");
-  const [readTime, setReadTime] = useState(article?.readTime || "");
+  const [readTime, setReadTime] = useState(article?.read_time || "");
   const [description, setDescription] = useState(article?.description || "");
-  const [imageUrl, setImageUrl] = useState(article?.image || "");
+
+  // State gambar:
+  // - imageUri: URI lokal baru (dari galeri), null jika belum ganti gambar
+  // - imageBase64: String base64 gambar baru
+  // - existingImageUrl: URL gambar lama dari Supabase (untuk ditampilkan sebagai preview)
+  const [imageUri, setImageUri] = useState(null);
+  const [imageBase64, setImageBase64] = useState(null);
+  const [existingImageUrl] = useState(article?.image_url || null);
+  const [removeExistingImage, setRemoveExistingImage] = useState(false);
+  const [uploadingImage, setUploadingImage] = useState(false);
 
   // State loading dan error saat request API
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
-  // Animated values untuk efek masuk
-  const fadeAnim = useRef(new Animated.Value(0)).current;
-  const slideAnim = useRef(new Animated.Value(30)).current;
 
-  // Jalankan animasi masuk saat screen mount
-  useEffect(() => {
-    Animated.parallel([
-      Animated.timing(fadeAnim, {
-        toValue: 1,
-        duration: 400,
-        useNativeDriver: true,
-      }),
-      Animated.timing(slideAnim, {
-        toValue: 0,
-        duration: 400,
-        useNativeDriver: true,
-      }),
-    ]).start();
-  }, []);
+  // Fungsi membuka galeri untuk memilih gambar baru
+  const handlePickImage = async () => {
+    const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    if (status !== "granted") {
+      Alert.alert(
+        "Izin Diperlukan",
+        "Aplikasi membutuhkan izin untuk mengakses galeri foto."
+      );
+      return;
+    }
+
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ['images'],
+      allowsEditing: true,
+      aspect: [16, 9],
+      quality: 0.8,
+      base64: true,
+    });
+
+    if (!result.canceled && result.assets[0]) {
+      setImageUri(result.assets[0].uri);
+      setImageBase64(result.assets[0].base64);
+      setRemoveExistingImage(false);
+      setError(null);
+    }
+  };
 
   // Fungsi reset form ke data awal (sebelum diedit)
   const handleReset = () => {
     setTitle(article?.title || "");
     setCategory(article?.category || "");
-    setReadTime(article?.readTime || "");
+    setReadTime(article?.read_time || "");
     setDescription(article?.description || "");
-    setImageUrl(article?.image || "");
+    setImageUri(null);
+    setImageBase64(null);
+    setRemoveExistingImage(false);
     setError(null);
   };
 
-  // Fungsi simpan perubahan — mengirim HTTP PUT ke MockAPI
+  // Helper: tentukan gambar mana yang ditampilkan di preview
+  const getPreviewImage = () => {
+    if (imageUri) return imageUri; // gambar baru dari galeri
+    if (!removeExistingImage && existingImageUrl) return existingImageUrl; // gambar lama
+    return null;
+  };
+
+  // Fungsi simpan perubahan — upload gambar baru (jika ada), lalu UPDATE ke Supabase
   const handleSave = async () => {
     if (!title.trim() || !category.trim()) {
       Alert.alert("Peringatan", "Judul dan kategori wajib diisi!");
       return;
     }
 
-    // Payload update: pertahankan createdAt yang asli
-    const payload = {
-      title: title.trim(),
-      category: category.trim(),
-      readTime: readTime.trim() || "5 min",
-      image: imageUrl.trim() || null,
-      description: description.trim(),
-      createdAt: article?.createdAt || new Date().toISOString(),
-    };
-
     try {
       setLoading(true);
       setError(null);
 
-      // Kirim PUT ke MockAPI dengan id artikel
+      // Tentukan image_url final:
+      // 1. Upload gambar baru jika ada
+      let finalImageUrl = existingImageUrl;
+      if (imageUri && imageBase64) {
+        setUploadingImage(true);
+        finalImageUrl = await uploadArticleImage(imageUri, imageBase64);
+        setUploadingImage(false);
+      } else if (removeExistingImage) {
+        finalImageUrl = null;
+      }
+
+      // Payload snake_case sesuai skema tabel Supabase
+      const payload = {
+        title: title.trim(),
+        category: category.trim(),
+        read_time: readTime.trim() || "5 min",
+        image_url: finalImageUrl,
+        description: description.trim(),
+      };
+
+      // Kirim UPDATE ke Supabase dengan id artikel
       await updateArticle(article.id, payload);
 
       Alert.alert(
@@ -92,15 +129,24 @@ export default function EditArticleScreen({ navigation, route }) {
         [{ text: "OK", onPress: () => navigation.goBack() }]
       );
     } catch (err) {
-      setError("Gagal memperbarui artikel. Periksa koneksi dan coba lagi.");
+      setUploadingImage(false);
+      setError(`Gagal: ${err.message}`);
       Alert.alert(
-        "Gagal Update",
-        "Terjadi kesalahan saat memperbarui data. Pastikan koneksi internet aktif."
+        "Gagal Menyimpan",
+        err.message
       );
     } finally {
       setLoading(false);
     }
   };
+
+  const getLoadingLabel = () => {
+    if (uploadingImage) return "Mengupload gambar...";
+    if (loading) return "Menyimpan...";
+    return null;
+  };
+
+  const previewImage = getPreviewImage();
 
   return (
     <KeyboardAvoidingView
@@ -108,9 +154,7 @@ export default function EditArticleScreen({ navigation, route }) {
       behavior={Platform.OS === "ios" ? "padding" : "height"}
     >
       {/* Header */}
-      <Animated.View
-        style={[styles.header, { opacity: fadeAnim, transform: [{ translateY: slideAnim }] }]}
-      >
+      <View style={styles.header}>
         <TouchableOpacity
           style={styles.backButton}
           onPress={() => navigation.goBack()}
@@ -134,7 +178,7 @@ export default function EditArticleScreen({ navigation, route }) {
             <Text style={styles.saveHeaderText}>Simpan</Text>
           )}
         </TouchableOpacity>
-      </Animated.View>
+      </View>
 
       <ScrollView
         style={styles.scroll}
@@ -142,9 +186,64 @@ export default function EditArticleScreen({ navigation, route }) {
         showsVerticalScrollIndicator={false}
         keyboardShouldPersistTaps="handled"
       >
-        <Animated.View
-          style={{ opacity: fadeAnim, transform: [{ translateY: slideAnim }] }}
-        >
+        <View>
+          {/* === PICKER GAMBAR === */}
+          <View style={styles.inputGroup}>
+            <View style={styles.labelRow}>
+              <Text style={styles.label}>Gambar Artikel</Text>
+            </View>
+
+            {previewImage ? (
+              // Tampilkan preview gambar (lama atau baru)
+              <View style={styles.imagePreviewWrapper}>
+                <Image source={{ uri: previewImage }} style={styles.imagePreview} />
+                {/* Tombol hapus / ganti gambar */}
+                <TouchableOpacity
+                  style={styles.removeImageBtn}
+                  onPress={() => {
+                    if (imageUri) {
+                      // Batalkan gambar baru, kembali ke gambar lama
+                      setImageUri(null);
+                      setImageBase64(null);
+                    } else {
+                      // Tandai gambar lama untuk dihapus
+                      setRemoveExistingImage(true);
+                    }
+                  }}
+                >
+                  <X color="#fff" size={16} />
+                </TouchableOpacity>
+                {/* Tombol ganti gambar (tap area bawah preview) */}
+                <TouchableOpacity
+                  style={styles.changeImageBtn}
+                  onPress={handlePickImage}
+                >
+                  <Text style={styles.changeImageText}>Ganti Gambar</Text>
+                </TouchableOpacity>
+                {/* Overlay saat upload */}
+                {uploadingImage && (
+                  <View style={styles.uploadingOverlay}>
+                    <ActivityIndicator color="#fff" size="small" />
+                    <Text style={styles.uploadingText}>Mengupload...</Text>
+                  </View>
+                )}
+              </View>
+            ) : (
+              // Tombol pilih gambar dari galeri
+              <TouchableOpacity
+                style={styles.imagePicker}
+                onPress={handlePickImage}
+                activeOpacity={0.75}
+              >
+                <ImagePlus color={theme.colors.primary} size={32} strokeWidth={1.5} />
+                <Text style={styles.imagePickerTitle}>Pilih Gambar</Text>
+                <Text style={styles.imagePickerSubtitle}>
+                  Ketuk untuk memilih dari galeri
+                </Text>
+              </TouchableOpacity>
+            )}
+          </View>
+
           {/* Field Judul Artikel */}
           <View style={styles.inputGroup}>
             <View style={styles.labelRow}>
@@ -195,23 +294,6 @@ export default function EditArticleScreen({ navigation, route }) {
             />
           </View>
 
-          {/* Field URL Gambar */}
-          <View style={styles.inputGroup}>
-            <View style={styles.labelRow}>
-              <Text style={styles.label}>URL Gambar</Text>
-            </View>
-            <TextInput
-              style={styles.input}
-              placeholder="https://..."
-              placeholderTextColor={theme.colors.textSecondary}
-              value={imageUrl}
-              onChangeText={setImageUrl}
-              keyboardType="url"
-              autoCapitalize="none"
-              autoCorrect={false}
-            />
-          </View>
-
           {/* Field Deskripsi */}
           <View style={styles.inputGroup}>
             <View style={styles.labelRow}>
@@ -235,6 +317,14 @@ export default function EditArticleScreen({ navigation, route }) {
           {error && (
             <View style={styles.errorBox}>
               <Text style={styles.errorText}>{error}</Text>
+            </View>
+          )}
+
+          {/* Info loading */}
+          {loading && (
+            <View style={styles.loadingInfo}>
+              <ActivityIndicator size="small" color={theme.colors.primary} />
+              <Text style={styles.loadingInfoText}>{getLoadingLabel()}</Text>
             </View>
           )}
 
@@ -264,9 +354,8 @@ export default function EditArticleScreen({ navigation, route }) {
               )}
             </TouchableOpacity>
           </View>
-
           <View style={{ height: 40 }} />
-        </Animated.View>
+        </View>
       </ScrollView>
     </KeyboardAvoidingView>
   );
@@ -322,25 +411,17 @@ const styles = StyleSheet.create({
     minWidth: 68,
     alignItems: "center",
   },
-  saveHeaderBtnDisabled: {
-    opacity: 0.5,
-  },
+  saveHeaderBtnDisabled: { opacity: 0.5 },
   saveHeaderText: {
     color: theme.colors.primary,
     fontSize: 13,
     fontFamily: "Poppins-SemiBold",
   },
   // Scroll
-  scroll: {
-    flex: 1,
-  },
-  scrollContent: {
-    padding: 20,
-  },
+  scroll: { flex: 1 },
+  scrollContent: { padding: 20 },
   // Input groups
-  inputGroup: {
-    marginBottom: 18,
-  },
+  inputGroup: { marginBottom: 18 },
   labelRow: {
     flexDirection: "row",
     alignItems: "center",
@@ -378,6 +459,94 @@ const styles = StyleSheet.create({
     fontFamily: "Poppins-Regular",
     textAlign: "right",
     marginTop: 4,
+  },
+  // Image picker
+  imagePicker: {
+    height: 150,
+    borderRadius: 14,
+    borderWidth: 2,
+    borderColor: "rgba(76, 175, 80, 0.3)",
+    borderStyle: "dashed",
+    backgroundColor: "rgba(76, 175, 80, 0.05)",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 8,
+  },
+  imagePickerTitle: {
+    fontSize: 15,
+    color: theme.colors.primary,
+    fontFamily: "Poppins-SemiBold",
+  },
+  imagePickerSubtitle: {
+    fontSize: 12,
+    color: theme.colors.textSecondary,
+    fontFamily: "Poppins-Regular",
+  },
+  // Image preview
+  imagePreviewWrapper: {
+    borderRadius: 14,
+    overflow: "hidden",
+    position: "relative",
+    height: 180,
+  },
+  imagePreview: {
+    width: "100%",
+    height: "100%",
+  },
+  removeImageBtn: {
+    position: "absolute",
+    top: 10,
+    right: 10,
+    backgroundColor: "rgba(0,0,0,0.6)",
+    borderRadius: 20,
+    width: 32,
+    height: 32,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  changeImageBtn: {
+    position: "absolute",
+    bottom: 0,
+    left: 0,
+    right: 0,
+    backgroundColor: "rgba(0,0,0,0.5)",
+    paddingVertical: 8,
+    alignItems: "center",
+  },
+  changeImageText: {
+    color: "#fff",
+    fontSize: 13,
+    fontFamily: "Poppins-Medium",
+  },
+  uploadingOverlay: {
+    position: "absolute",
+    top: 0,
+    bottom: 0,
+    left: 0,
+    right: 0,
+    backgroundColor: "rgba(0,0,0,0.55)",
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 8,
+  },
+  uploadingText: {
+    color: "#fff",
+    fontSize: 13,
+    fontFamily: "Poppins-Medium",
+  },
+  // Loading info
+  loadingInfo: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 10,
+    marginBottom: 12,
+    paddingHorizontal: 4,
+  },
+  loadingInfoText: {
+    fontSize: 13,
+    color: theme.colors.textSecondary,
+    fontFamily: "Poppins-Regular",
   },
   // Error box
   errorBox: {

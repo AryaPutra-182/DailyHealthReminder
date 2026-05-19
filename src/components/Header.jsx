@@ -16,7 +16,7 @@ const Header = ({ title, subtitle, userImage }) => {
         <Text style={styles.subtitle}>{subtitle}</Text>
       </View>
 
-      {/* Sisi kanan: Tombol + tambah artikel dan avatar */}
+      {/* Sisi kanan: Tombol + tambah artikel */}
       <View style={styles.rightSection}>
         {/* Tombol FAB tambah artikel */}
         <TouchableOpacity
@@ -26,14 +26,6 @@ const Header = ({ title, subtitle, userImage }) => {
         >
           <Plus color={theme.colors.primary} size={20} />
         </TouchableOpacity>
-
-        {/* Avatar pengguna */}
-        <View style={styles.avatarContainer}>
-          <Image
-            source={{ uri: userImage || "https://picsum.photos/100/100" }}
-            style={styles.avatar}
-          />
-        </View>
       </View>
     </View>
   );
