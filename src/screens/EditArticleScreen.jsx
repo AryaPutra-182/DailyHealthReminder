@@ -42,20 +42,19 @@ export default function EditArticleScreen({ navigation, route }) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
-
   // Fungsi membuka galeri untuk memilih gambar baru
   const handlePickImage = async () => {
     const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
     if (status !== "granted") {
       Alert.alert(
         "Izin Diperlukan",
-        "Aplikasi membutuhkan izin untuk mengakses galeri foto."
+        "Aplikasi membutuhkan izin untuk mengakses galeri foto.",
       );
       return;
     }
 
     const result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ['images'],
+      mediaTypes: ["images"],
       allowsEditing: true,
       aspect: [16, 9],
       quality: 0.8,
@@ -126,15 +125,12 @@ export default function EditArticleScreen({ navigation, route }) {
       Alert.alert(
         "Berhasil! ✅",
         `Artikel "${payload.title}" berhasil diperbarui!`,
-        [{ text: "OK", onPress: () => navigation.goBack() }]
+        [{ text: "OK", onPress: () => navigation.goBack() }],
       );
     } catch (err) {
       setUploadingImage(false);
       setError(`Gagal: ${err.message}`);
-      Alert.alert(
-        "Gagal Menyimpan",
-        err.message
-      );
+      Alert.alert("Gagal Menyimpan", err.message);
     } finally {
       setLoading(false);
     }
@@ -168,7 +164,10 @@ export default function EditArticleScreen({ navigation, route }) {
         </View>
         {/* Tombol simpan di header */}
         <TouchableOpacity
-          style={[styles.saveHeaderBtn, loading && styles.saveHeaderBtnDisabled]}
+          style={[
+            styles.saveHeaderBtn,
+            loading && styles.saveHeaderBtnDisabled,
+          ]}
           onPress={handleSave}
           disabled={loading}
         >
@@ -196,7 +195,10 @@ export default function EditArticleScreen({ navigation, route }) {
             {previewImage ? (
               // Tampilkan preview gambar (lama atau baru)
               <View style={styles.imagePreviewWrapper}>
-                <Image source={{ uri: previewImage }} style={styles.imagePreview} />
+                <Image
+                  source={{ uri: previewImage }}
+                  style={styles.imagePreview}
+                />
                 {/* Tombol hapus / ganti gambar */}
                 <TouchableOpacity
                   style={styles.removeImageBtn}
@@ -235,7 +237,11 @@ export default function EditArticleScreen({ navigation, route }) {
                 onPress={handlePickImage}
                 activeOpacity={0.75}
               >
-                <ImagePlus color={theme.colors.primary} size={32} strokeWidth={1.5} />
+                <ImagePlus
+                  color={theme.colors.primary}
+                  size={32}
+                  strokeWidth={1.5}
+                />
                 <Text style={styles.imagePickerTitle}>Pilih Gambar</Text>
                 <Text style={styles.imagePickerSubtitle}>
                   Ketuk untuk memilih dari galeri
@@ -402,12 +408,12 @@ const styles = StyleSheet.create({
     fontFamily: "Poppins-Regular",
   },
   saveHeaderBtn: {
-    backgroundColor: "rgba(76, 175, 80, 0.15)",
+    backgroundColor: "rgba(255, 215, 0, 0.15)",
     paddingHorizontal: 14,
     paddingVertical: 7,
     borderRadius: 10,
     borderWidth: 1,
-    borderColor: "rgba(76, 175, 80, 0.3)",
+    borderColor: "rgba(255, 215, 0, 0.3)",
     minWidth: 68,
     alignItems: "center",
   },
@@ -465,9 +471,9 @@ const styles = StyleSheet.create({
     height: 150,
     borderRadius: 14,
     borderWidth: 2,
-    borderColor: "rgba(76, 175, 80, 0.3)",
+    borderColor: "rgba(255, 215, 0, 0.3)",
     borderStyle: "dashed",
-    backgroundColor: "rgba(76, 175, 80, 0.05)",
+    backgroundColor: "rgba(255, 215, 0, 0.05)",
     alignItems: "center",
     justifyContent: "center",
     gap: 8,

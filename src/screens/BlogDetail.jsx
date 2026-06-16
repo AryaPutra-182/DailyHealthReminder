@@ -170,7 +170,7 @@ export default function BlogDetail({ route }) {
             <View style={styles.authorAvatar}>
               <User size={16} color={theme.colors.primary} />
             </View>
-            <Text style={styles.authorName}>Daily Health Team</Text>
+            <Text style={styles.authorName}>Football Times Editor</Text>
           </View>
           
           <View style={styles.dot} />
@@ -304,7 +304,7 @@ const styles = StyleSheet.create({
     width: 28,
     height: 28,
     borderRadius: 14,
-    backgroundColor: "rgba(76, 175, 80, 0.1)",
+    backgroundColor: "rgba(255, 215, 0, 0.1)", // Gold
     justifyContent: "center",
     alignItems: "center",
   },

@@ -1,6 +1,6 @@
 export const PROFILE_DATA = {
   name: "Winden",
-  subtitle: "Daily Health Reminder",
+  subtitle: "Football Times ⚽",
   email: "winden.health@example.com",
   image: "https://images.unsplash.com/photo-1534528741775-53994a69daeb",
   stats: {

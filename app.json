@@ -1,7 +1,7 @@
 {
   "expo": {
-    "name": "daily-health-reminder",
-    "slug": "daily-health-reminder",
+    "name": "Football Times",
+    "slug": "football-times",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",

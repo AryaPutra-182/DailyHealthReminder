@@ -7,9 +7,10 @@ import SectionHeader from "./SectionHeader";
 import HabitCard from "./HabitCard";
 import FeaturedCard from "./FeaturedCard";
 import ArticleCard from "./ArticleCard";
+import { MatchCard } from "../screens/MatchScheduleScreen";
 
-// Komponen ListBlog: Menampilkan daftar artikel dan habit di halaman Home
-export default function ListBlog({ userData, featuredArticle, habits, articles, onEdit, onDelete }) {
+// Komponen ListBlog: Menampilkan daftar artikel dan aksi cepat di halaman Home
+export default function ListBlog({ userData, featuredArticle, habits, articles, todayMatches, onEdit, onDelete }) {
   // Hook untuk mengakses fungsi navigasi
   const navigation = useNavigation();
 
@@ -68,12 +69,11 @@ export default function ListBlog({ userData, featuredArticle, habits, articles, 
         onPress={() => handleArticlePress(featuredArticle)}
       />
 
-      {/* Quick Habits Section */}
+      {/* Akses Cepat Section */}
       <View style={styles.section}>
         <SectionHeader 
-          title="Quick Habits" 
-          showSeeAll={true} 
-          onPressSeeAll={() => console.log("See All Habits pressed")}
+          title="Akses Cepat" 
+          showSeeAll={false}
         />
 
         <ScrollView 
@@ -88,15 +88,33 @@ export default function ListBlog({ userData, featuredArticle, habits, articles, 
               label={habit.label}
               color={habit.color}
               bgColor={habit.bgColor}
-              onPress={() => console.log(`${habit.label} pressed`)}
+              onPress={() => {
+                if(habit.screen) navigation.navigate(habit.screen);
+              }}
             />
           ))}
         </ScrollView>
       </View>
 
-      {/* Article Grid Section */}
+      {/* Jadwal Hari Ini Section */}
+      {todayMatches && todayMatches.length > 0 && (
+        <View style={styles.section}>
+          <SectionHeader 
+            title="Jadwal Hari Ini" 
+            showSeeAll={true} 
+            onPressSeeAll={() => navigation.navigate("Bola")}
+          />
+          <View style={styles.matchList}>
+            {todayMatches.map((match, index) => (
+              <MatchCard key={match.id} match={match} index={index} />
+            ))}
+          </View>
+        </View>
+      )}
+
+      {/* Berita Terkini Section */}
       <View style={styles.section}>
-        <SectionHeader title="Latest Articles" />
+        <SectionHeader title="Berita Terkini" />
 
         <View style={styles.grid}>
           {articles.map((article) => (
@@ -134,6 +152,9 @@ const styles = StyleSheet.create({
   habitRowScroll: {
     paddingHorizontal: 24,
     gap: 15,
+  },
+  matchList: {
+    paddingHorizontal: 24,
   },
   grid: {
     flexDirection: "row",

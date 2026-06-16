@@ -1,10 +1,6 @@
 import * as SecureStore from "expo-secure-store";
 import { createClient } from "@supabase/supabase-js";
 
-// ===================================================================
-// KONFIGURASI SUPABASE
-// Bisa ditemukan di: Supabase Dashboard → Settings → API
-// ===================================================================
 const SUPABASE_URL = "https://wmwdfyzwqqlemzebwkmr.supabase.co";
 const SUPABASE_ANON_KEY = "sb_publishable_PspBUzDiZn-dDmuzstlj4g_6ZsW8yEZ";
 
@@ -25,6 +21,8 @@ const ChunkedSecureStore = {
       chunks.map((chunk, i) => SecureStore.setItemAsync(`${key}_${i}`, chunk))
     );
   },
+
+   
 
   // Ambil value dengan menggabungkan semua chunk
   getItem: async (key) => {

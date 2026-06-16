@@ -12,8 +12,9 @@ import {
   Dimensions,
   ActivityIndicator,
   Alert,
+  Image,
 } from "react-native";
-import { Eye, EyeOff, Mail, Lock, Activity } from "lucide-react-native";
+import { Eye, EyeOff, Mail, Lock, Trophy } from "lucide-react-native";
 import theme from "../../assets/theme";
 import { loginUser } from "../services/authService";
 
@@ -98,14 +99,18 @@ export default function LoginScreen({ navigation }) {
       style={styles.container}
       behavior={Platform.OS === "ios" ? "padding" : "height"}
     >
+      <Image 
+        source={{ uri: "https://images.unsplash.com/photo-1518605368461-1ee125225f27" }}
+        style={StyleSheet.absoluteFillObject}
+        resizeMode="cover"
+      />
+      <View style={[StyleSheet.absoluteFillObject, { backgroundColor: "rgba(0,0,0,0.75)" }]} />
+
       <ScrollView
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
         keyboardShouldPersistTaps="handled"
       >
-        {/* Dekorasi background */}
-        <View style={styles.bgCircle1} />
-        <View style={styles.bgCircle2} />
 
         {/* Header Section */}
         <Animated.View
@@ -117,14 +122,10 @@ export default function LoginScreen({ navigation }) {
             },
           ]}
         >
-          {/* Logo kecil */}
-          <View style={styles.logoSmall}>
-            <Activity color={theme.colors.primary} size={28} strokeWidth={1.8} />
-          </View>
           <Text style={styles.welcomeText}>Selamat Datang</Text>
-          <Text style={styles.titleText}>Daily Health Reminder</Text>
+          <Text style={styles.titleText}>Football Times</Text>
           <Text style={styles.subtitleText}>
-            Masuk untuk melanjutkan perjalanan kesehatanmu
+            Masuk untuk melihat update dunia sepak bola
           </Text>
         </Animated.View>
 
@@ -242,40 +243,10 @@ const styles = StyleSheet.create({
     paddingBottom: 40,
     overflow: "hidden",
   },
-  // Dekorasi background
-  bgCircle1: {
-    position: "absolute",
-    width: width * 0.7,
-    height: width * 0.7,
-    borderRadius: width * 0.35,
-    backgroundColor: "rgba(76, 175, 80, 0.06)",
-    top: -width * 0.15,
-    right: -width * 0.2,
-  },
-  bgCircle2: {
-    position: "absolute",
-    width: width * 0.5,
-    height: width * 0.5,
-    borderRadius: width * 0.25,
-    backgroundColor: "rgba(0, 194, 168, 0.05)",
-    bottom: width * 0.2,
-    left: -width * 0.15,
-  },
   // Header
   headerSection: {
     alignItems: "center",
     marginBottom: 36,
-  },
-  logoSmall: {
-    width: 64,
-    height: 64,
-    borderRadius: 18,
-    backgroundColor: "rgba(76, 175, 80, 0.15)",
-    alignItems: "center",
-    justifyContent: "center",
-    borderWidth: 1,
-    borderColor: "rgba(76, 175, 80, 0.25)",
-    marginBottom: 20,
   },
 
   welcomeText: {

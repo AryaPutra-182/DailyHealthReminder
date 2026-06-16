@@ -64,9 +64,9 @@ const styles = StyleSheet.create({
     width: 40,
     height: 40,
     borderRadius: 12,
-    backgroundColor: "rgba(76, 175, 80, 0.12)",
+    backgroundColor: "rgba(255, 215, 0, 0.12)", // warna dasar emas transparan
     borderWidth: 1,
-    borderColor: "rgba(76, 175, 80, 0.3)",
+    borderColor: "rgba(255, 215, 0, 0.3)",
     alignItems: "center",
     justifyContent: "center",
   },

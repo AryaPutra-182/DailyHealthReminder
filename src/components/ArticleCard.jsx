@@ -293,7 +293,7 @@ const styles = StyleSheet.create({
     width: 34,
     height: 34,
     borderRadius: 10,
-    backgroundColor: "rgba(76, 175, 80, 0.12)",
+    backgroundColor: "rgba(255, 215, 0, 0.12)", // Gold
     alignItems: "center",
     justifyContent: "center",
   },

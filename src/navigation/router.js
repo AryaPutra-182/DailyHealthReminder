@@ -2,7 +2,13 @@ import React from "react";
 import { StyleSheet } from "react-native";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
-import { Home as HomeIcon, Search, Bookmark as BookmarkIcon, User } from "lucide-react-native";
+import {
+  Home as HomeIcon,
+  Search,
+  Bookmark as BookmarkIcon,
+  User,
+  CircleDot,
+} from "lucide-react-native";
 
 import theme from "../../assets/theme";
 
@@ -18,12 +24,14 @@ import LoginScreen from "../screens/LoginScreen";
 import RegisterScreen from "../screens/RegisterScreen";
 import AddArticleScreen from "../screens/AddArticleScreen";
 import EditArticleScreen from "../screens/EditArticleScreen";
+import FootballScreen from "../screens/FootballScreen";
 
 const Tab = createBottomTabNavigator();
 const Stack = createNativeStackNavigator();
 
 /**
  * Komponen MainTab: Mengelola navigasi tab bar di bagian bawah aplikasi
+ * Tab: Home | Discover | Bola ⚽ | Bookmark | Profile
  */
 function MainTab() {
   return (
@@ -48,6 +56,15 @@ function MainTab() {
         component={Discover}
         options={{
           tabBarIcon: ({ color, size }) => <Search color={color} size={size} />,
+        }}
+      />
+      {/* Tab baru: Bola (Jadwal, Klasemen, Hasil) */}
+      <Tab.Screen
+        name="Bola"
+        component={FootballScreen}
+        options={{
+          tabBarIcon: ({ color, size }) => <CircleDot color={color} size={size} />,
+          tabBarLabel: "Bola",
         }}
       />
       <Tab.Screen

@@ -5,8 +5,8 @@ import {
   StyleSheet,
   Animated,
   Dimensions,
+  Image,
 } from "react-native";
-import { Activity } from "lucide-react-native";
 import theme from "../../assets/theme";
 
 const { width, height } = Dimensions.get("window");
@@ -21,6 +21,7 @@ export default function SplashScreen({ navigation }) {
   const textSlide = useRef(new Animated.Value(20)).current;
   const taglineOpacity = useRef(new Animated.Value(0)).current;
   const bgOpacity = useRef(new Animated.Value(0)).current;
+  const glowAnim = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
     // Urutan animasi splash screen
@@ -70,29 +71,26 @@ export default function SplashScreen({ navigation }) {
         navigation.replace("Login");
       }, 600);
     });
+
+    // Loop glow animation untuk ikon trophy
+    Animated.loop(
+      Animated.sequence([
+        Animated.timing(glowAnim, { toValue: 1, duration: 1200, useNativeDriver: true }),
+        Animated.timing(glowAnim, { toValue: 0, duration: 1200, useNativeDriver: true }),
+      ])
+    ).start();
   }, []);
+
+  const glowOpacity = glowAnim.interpolate({ inputRange: [0, 1], outputRange: [0.3, 0.8] });
 
   return (
     <Animated.View style={[styles.container, { opacity: bgOpacity }]}>
-      {/* Dekorasi lingkaran background */}
-      <View style={styles.circle1} />
-      <View style={styles.circle2} />
-
-      {/* Logo utama */}
-      <Animated.View
-        style={[
-          styles.logoContainer,
-          {
-            opacity: logoOpacity,
-            transform: [{ scale: logoScale }],
-          },
-        ]}
-      >
-        {/* Icon logo — lingkaran hijau dengan ikon aktivitas */}
-        <View style={styles.logoIcon}>
-          <Activity color={theme.colors.primary} size={46} strokeWidth={1.8} />
-        </View>
-      </Animated.View>
+      <Image 
+        source={{ uri: "https://images.unsplash.com/photo-1518605368461-1ee125225f27" }}
+        style={StyleSheet.absoluteFillObject}
+        resizeMode="cover"
+      />
+      <View style={[StyleSheet.absoluteFillObject, { backgroundColor: "rgba(0,0,0,0.75)" }]} />
 
       {/* Nama Aplikasi */}
       <Animated.Text
@@ -104,7 +102,7 @@ export default function SplashScreen({ navigation }) {
           },
         ]}
       >
-        Daily Health
+        Football
       </Animated.Text>
       <Animated.Text
         style={[
@@ -115,12 +113,12 @@ export default function SplashScreen({ navigation }) {
           },
         ]}
       >
-        Reminder
+        Times
       </Animated.Text>
 
       {/* Tagline */}
       <Animated.Text style={[styles.tagline, { opacity: taglineOpacity }]}>
-        Your daily wellness companion
+        Your ultimate football companion ⚽
       </Animated.Text>
 
       {/* Loading dots di bawah */}
@@ -141,54 +139,20 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     overflow: "hidden",
   },
-  // Dekorasi lingkaran latar belakang
-  circle1: {
-    position: "absolute",
-    width: width * 0.8,
-    height: width * 0.8,
-    borderRadius: width * 0.4,
-    backgroundColor: "rgba(76, 175, 80, 0.05)",
-    top: -width * 0.2,
-    right: -width * 0.2,
-  },
-  circle2: {
-    position: "absolute",
-    width: width * 0.6,
-    height: width * 0.6,
-    borderRadius: width * 0.3,
-    backgroundColor: "rgba(0, 194, 168, 0.05)",
-    bottom: -width * 0.1,
-    left: -width * 0.1,
-  },
-  // Container logo
-  logoContainer: {
-    marginBottom: 28,
-  },
-  logoIcon: {
-    width: 100,
-    height: 100,
-    borderRadius: 28,
-    backgroundColor: "rgba(76, 175, 80, 0.15)",
-    alignItems: "center",
-    justifyContent: "center",
-    borderWidth: 1.5,
-    borderColor: "rgba(76, 175, 80, 0.3)",
-  },
-
   // Teks nama aplikasi
   appName: {
-    fontSize: 36,
+    fontSize: 38,
     color: theme.colors.text,
     fontFamily: "Poppins-Bold",
-    letterSpacing: 1,
-    lineHeight: 42,
+    letterSpacing: 1.5,
+    lineHeight: 44,
   },
   appNameAccent: {
-    fontSize: 36,
+    fontSize: 38,
     color: theme.colors.primary,
     fontFamily: "Poppins-Bold",
-    letterSpacing: 1,
-    lineHeight: 42,
+    letterSpacing: 1.5,
+    lineHeight: 44,
     marginBottom: 16,
   },
   tagline: {

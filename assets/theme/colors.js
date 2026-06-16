@@ -1,10 +1,11 @@
 export default {
-  background: "#0D0F14",
-  card: "#1A1D24",
-  primary: "#4CAF50",
-  secondary: "#00C2A8",
-  text: "#E4E6EB",
-  textSecondary: "#A0A3BD",
-  border: "#2A2E39",
+  background: "#000000",    // Hitam OLED pekat
+  card: "#0F0F0F",          // Hitam sedikit lebih terang untuk kartu
+  primary: "#FFD700",       // Kuning emas
+  secondary: "#F5A623",
+  accent: "#FFD700",        
+  text: "#FFFFFF",
+  textSecondary: "#A3A3A3",
+  border: "#262626",
   danger: "#FF4C4C"
 };

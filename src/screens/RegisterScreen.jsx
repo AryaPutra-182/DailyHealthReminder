@@ -11,8 +11,9 @@ import {
   ScrollView,
   Dimensions,
   ActivityIndicator,
+  Image,
 } from "react-native";
-import { Eye, EyeOff, Mail, Lock, User, Activity } from "lucide-react-native";
+import { Eye, EyeOff, Mail, Lock, User, Trophy } from "lucide-react-native";
 import theme from "../../assets/theme";
 import { registerUser } from "../services/authService";
 
@@ -110,14 +111,18 @@ export default function RegisterScreen({ navigation }) {
       style={styles.container}
       behavior={Platform.OS === "ios" ? "padding" : "height"}
     >
+      <Image 
+        source={{ uri: "https://images.unsplash.com/photo-1518605368461-1ee125225f27" }}
+        style={StyleSheet.absoluteFillObject}
+        resizeMode="cover"
+      />
+      <View style={[StyleSheet.absoluteFillObject, { backgroundColor: "rgba(0,0,0,0.75)" }]} />
+
       <ScrollView
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
         keyboardShouldPersistTaps="handled"
       >
-        {/* Dekorasi background */}
-        <View style={styles.bgCircle1} />
-        <View style={styles.bgCircle2} />
 
         {/* Header Section */}
         <Animated.View
@@ -129,14 +134,10 @@ export default function RegisterScreen({ navigation }) {
             },
           ]}
         >
-          {/* Logo kecil */}
-          <View style={styles.logoSmall}>
-            <Activity color={theme.colors.secondary} size={28} strokeWidth={1.8} />
-          </View>
           <Text style={styles.welcomeText}>Buat Akun Baru</Text>
-          <Text style={styles.titleText}>Bergabung Sekarang</Text>
+          <Text style={styles.titleText}>Football Times</Text>
           <Text style={styles.subtitleText}>
-            Mulai perjalanan hidup sehat bersama kami
+            Dapatkan update dunia sepak bola terkini
           </Text>
         </Animated.View>
 
@@ -287,40 +288,10 @@ const styles = StyleSheet.create({
     paddingBottom: 40,
     overflow: "hidden",
   },
-  // Dekorasi background
-  bgCircle1: {
-    position: "absolute",
-    width: width * 0.7,
-    height: width * 0.7,
-    borderRadius: width * 0.35,
-    backgroundColor: "rgba(0, 194, 168, 0.06)",
-    top: -width * 0.15,
-    left: -width * 0.2,
-  },
-  bgCircle2: {
-    position: "absolute",
-    width: width * 0.5,
-    height: width * 0.5,
-    borderRadius: width * 0.25,
-    backgroundColor: "rgba(76, 175, 80, 0.05)",
-    bottom: width * 0.1,
-    right: -width * 0.15,
-  },
   // Header
   headerSection: {
     alignItems: "center",
-    marginBottom: 28,
-  },
-  logoSmall: {
-    width: 64,
-    height: 64,
-    borderRadius: 18,
-    backgroundColor: "rgba(0, 194, 168, 0.15)",
-    alignItems: "center",
-    justifyContent: "center",
-    borderWidth: 1,
-    borderColor: "rgba(0, 194, 168, 0.25)",
-    marginBottom: 16,
+    marginBottom: 36,
   },
 
   welcomeText: {

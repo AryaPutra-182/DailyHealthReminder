@@ -1,114 +1,91 @@
-import { Droplets, Activity, Flame, Clock } from "lucide-react-native";
+import { CalendarClock, ListOrdered, CheckCircle, Flame } from "lucide-react-native";
 import theme from "../../assets/theme";
 
+// Featured article default (berita bola terbaru)
 export const INITIAL_FEATURED_ARTICLE = {
-
-  title: "10 Minute Daily Exercise For Beginners",
-  image: "https://images.unsplash.com/photo-1517836357463-d25dfeac3438",
-  readTime: "5 min",
-  badgeText: "FEATURED"
+  title: "Haaland Hat-trick Bawa City Raih Gelar Premier League",
+  image: "https://images.unsplash.com/photo-1508098682722-e99c43a406b2",
+  readTime: "4 min",
+  badgeText: "TERBARU"
 };
 
+// Quick action cards di Home – akses cepat fitur bola
 export const INITIAL_HABITS = [
-  { 
-    id: 1, 
-    label: "Water", 
-    Icon: Droplets, 
-    color: theme.colors.secondary, 
-    bgColor: 'rgba(0, 194, 168, 0.15)' 
+  {
+    id: 1,
+    label: "Jadwal",
+    Icon: CalendarClock,
+    color: theme.colors.primary,
+    bgColor: "rgba(255, 215, 0, 0.15)", // #FFD700
+    screen: "Bola",
   },
-  { 
-    id: 2, 
-    label: "Stretch", 
-    Icon: Activity, 
-    color: theme.colors.primary, 
-    bgColor: 'rgba(76, 175, 80, 0.15)' 
+  {
+    id: 2,
+    label: "Klasemen",
+    Icon: ListOrdered,
+    color: theme.colors.secondary,
+    bgColor: "rgba(245, 166, 35, 0.15)", // #F5A623
+    screen: "Bola",
   },
-  { 
-    id: 3, 
-    label: "Workout", 
-    Icon: Flame, 
-    color: theme.colors.danger, 
-    bgColor: 'rgba(255, 76, 76, 0.15)' 
+  {
+    id: 3,
+    label: "Hasil",
+    Icon: CheckCircle,
+    color: theme.colors.danger,
+    bgColor: "rgba(255, 76, 76, 0.15)", // #FF4C4C
+    screen: "Bola",
   },
-  { 
-    id: 4, 
-    label: "Sleep", 
-    Icon: Clock, 
-    color: "#4287f5", 
-    bgColor: 'rgba(66, 135, 245, 0.15)' 
+  {
+    id: 4,
+    label: "Berita",
+    Icon: Flame,
+    color: "#4287f5",
+    bgColor: "rgba(66, 135, 245, 0.15)", // #4287f5
+    screen: "Discover",
   },
-  { 
-    id: 5, 
-    label: "Meditate", 
-    Icon: Activity, 
-    color: "#f5ad42", 
-    bgColor: 'rgba(245, 173, 66, 0.15)' 
-  }
 ];
 
 export const INITIAL_ARTICLES = [
   {
     id: 1,
-    category: "NUTRITION",
-    title: "Healthy Food Guide For You",
-    image: "https://images.unsplash.com/photo-1546069901-ba9599a7e63c",
+    category: "PREMIER LEAGUE",
+    title: "Haaland Cetak Rekor Gol Terbanyak Sepanjang Masa",
+    image: "https://images.unsplash.com/photo-1508098682722-e99c43a406b2",
     readTime: "5 min"
   },
   {
     id: 2,
-    category: "DIET",
-    title: "Boost Your Energy Levels",
-    image: "https://images.unsplash.com/photo-1512621776951-a57141f2eefd",
-    readTime: "6 min"
-  },
-  {
-    id: 3,
-    category: "FITNESS",
-    title: "Home Workout Routine Basics",
-    image: "https://images.unsplash.com/photo-1506126613408-eca07ce68773",
-    readTime: "7 min"
-  },
-  {
-    id: 4,
-    category: "HEALTH",
-    title: "Secret To Better Sleep",
-    image: "https://images.unsplash.com/photo-1505751172876-fa1923c5c528",
+    category: "LA LIGA",
+    title: "El Clasico Berakhir Dramatis 2-2 di Bernabeu",
+    image: "https://images.unsplash.com/photo-1574629810360-7efbbe195018",
     readTime: "4 min"
   },
   {
+    id: 3,
+    category: "TRANSFER",
+    title: "Rumor Transfer Musim Panas: Pemain-pemain yang Diprediksi Pindah",
+    image: "https://images.unsplash.com/photo-1551958219-acbc76ae29d5",
+    readTime: "6 min"
+  },
+  {
+    id: 4,
+    category: "CHAMPIONS LEAGUE",
+    title: "Preview Semifinal UCL: Prediksi dan Statistik",
+    image: "https://images.unsplash.com/photo-1579952363873-27f3bade9f55",
+    readTime: "7 min"
+  },
+  {
     id: 5,
-    category: "MINDSET",
-    title: "Daily Meditation Practice",
-    image: "https://images.unsplash.com/photo-1532099515082-9dbcc5e25a2a",
+    category: "SERIE A",
+    title: "Inter Milan Dominan di Serie A: Gelar Ke-20 Sudah di Tangan",
+    image: "https://images.unsplash.com/photo-1574629810360-7efbbe195018",
     readTime: "5 min"
   },
   {
     id: 6,
-    category: "WELLNESS",
-    title: "Stay Hydrated All Day",
-    image: "https://images.unsplash.com/photo-1552674605-15c370425cc0",
-    readTime: "3 min"
+    category: "ANALISIS",
+    title: "Taktik Pep Guardiola: Mengapa City Selalu Konsisten",
+    image: "https://images.unsplash.com/photo-1508098682722-e99c43a406b2",
+    readTime: "8 min"
   },
-  {
-    id: 7,
-    category: "RECOVERY",
-    title: "Post-Workout Stretching",
-    image: "https://images.unsplash.com/photo-1517618957861-125fc7333671",
-    readTime: "6 min"
-  },
-  {
-    id: 8,
-    category: "NUTRITION",
-    title: "Healthy Snack Ideas",
-    image: "https://images.unsplash.com/photo-1490645935967-10de6ba17061",
-    readTime: "4 min"
-  },
-  {
-    id: 9,
-    category: "TIPS",
-    title: "How to Stay Healthy Without Stress",
-    image: null, // Testing fallback image
-    readTime: "5 min"
-  }
 ];

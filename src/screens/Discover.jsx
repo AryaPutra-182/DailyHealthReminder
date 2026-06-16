@@ -149,14 +149,14 @@ export default function Discover() {
         {/* Bagian Header: Judul halaman dan deskripsi singkat */}
         <View style={styles.header}>
           <Text style={styles.title}>Discover</Text>
-          <Text style={styles.subtitle}>Temukan konten kesehatan favoritmu</Text>
+          <Text style={styles.subtitle}>Temukan berita sepak bola favoritmu</Text>
         </View>
 
         {/* Bar Pencarian: Input untuk mencari artikel atau kebiasaan */}
         <View style={styles.searchBar}>
           <Search color={theme.colors.textSecondary} size={20} />
           <TextInput
-            placeholder="Cari artikel, tips kesehatan..."
+            placeholder="Cari berita bola, tim, pemain..."
             placeholderTextColor={theme.colors.textSecondary}
             style={styles.searchInput}
             value={searchQuery}
@@ -179,7 +179,7 @@ export default function Discover() {
         {searchQuery.trim().length > 0 && (
           <Text style={styles.resultCount}>
             {filteredArticles.length > 0
-              ? `${filteredArticles.length} artikel ditemukan`
+              ? `${filteredArticles.length} berita ditemukan`
               : "Tidak ada hasil"}
           </Text>
         )}
@@ -191,7 +191,7 @@ export default function Discover() {
         {loading && (
           <View style={styles.centerState}>
             <ActivityIndicator size="large" color={theme.colors.primary} />
-            <Text style={styles.loadingText}>Memuat artikel...</Text>
+            <Text style={styles.loadingText}>Memuat berita...</Text>
           </View>
         )}
 
@@ -240,9 +240,9 @@ export default function Discover() {
             {!showNoResult && articles.length === 0 && (
               <View style={styles.emptyState}>
                 <Text style={styles.emptyEmoji}>📭</Text>
-                <Text style={styles.emptyTitle}>Belum Ada Artikel</Text>
+                <Text style={styles.emptyTitle}>Belum Ada Berita</Text>
                 <Text style={styles.emptyText}>
-                  Tambahkan artikel pertamamu melalui form Tambah Artikel!
+                  Tambahkan artikel bola pertamamu melalui form Tambah Artikel!
                 </Text>
               </View>
             )}

@@ -9,6 +9,7 @@ import {
 import { PROFILE_DATA } from "../data/profile";
 import { getArticles, deleteArticle } from "../services/articleService";
 import { getCurrentUser } from "../services/authService";
+import { getScheduledMatches } from "../services/footballService";
 import theme from "../../assets/theme";
 
 // Screen Home: Menampilkan halaman utama aplikasi kesehatan
@@ -42,6 +43,7 @@ export default function Home() {
 
   // State untuk artikel dari API
   const [articles, setArticles] = useState([]);
+  const [todayMatches, setTodayMatches] = useState([]);
   const [loading, setLoading] = useState(true);
 
   // Fungsi fetch artikel dari MockAPI
@@ -76,11 +78,28 @@ export default function Home() {
     }
   }, []);
 
+  // Fungsi fetch match hari ini
+  const fetchMatches = useCallback(async () => {
+    try {
+      const todayStart = new Date();
+      todayStart.setHours(0, 0, 0, 0);
+      const todayEnd = new Date();
+      todayEnd.setHours(23, 59, 59, 999);
+      
+      const data = await getScheduledMatches(todayStart, todayEnd);
+      // Batasi max 3 pertandingan untuk ditampilkan di Home
+      setTodayMatches(data.slice(0, 3));
+    } catch (err) {
+      console.error("[Home] Gagal fetch match:", err);
+    }
+  }, []);
+
   // Fetch ulang setiap kali screen Home aktif (termasuk kembali dari AddArticle)
   useFocusEffect(
     useCallback(() => {
       fetchArticles();
-    }, [fetchArticles])
+      fetchMatches();
+    }, [fetchArticles, fetchMatches])
   );
 
   // Tampilkan loading spinner saat data belum siap
@@ -128,6 +147,7 @@ export default function Home() {
       featuredArticle={featuredArticle}
       habits={habits}
       articles={articles}
+      todayMatches={todayMatches}
       onEdit={handleEdit}
       onDelete={handleDelete}
     />
